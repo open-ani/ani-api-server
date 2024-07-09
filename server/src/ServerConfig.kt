@@ -123,7 +123,7 @@ class ServerConfigBuilder private constructor(
     }
 
     private fun environmentVariablesPass() {
-        port = port ?: System.getenv("KTOR_PORT")?.toIntOrNull()
+        port = port ?: System.getenv("PORT")?.toIntOrNull()
         host = host ?: System.getenv("KTOR_HOST")
         testing = testing ?: (System.getenv("SERVER_TESTING")?.toBoolean())
         rootDir = rootDir ?: System.getenv("SERVER_ROOT_DIR")?.let { File(it) }
