@@ -14,8 +14,8 @@ import kotlin.time.Duration.Companion.days
  * 可通过以下几种方式加载配置，覆盖优先级从高到低：
  * - 调用[me.him188.ani.danmaku.server.ktor.getKtorServer]时传入[ServerConfig]参数或[ServerConfigBuilder] DSL参数
  * - 通过命令行参数传入配置项
- * - 在同目录的resources文件夹下放置HOCON配置文件application.conf
  * - 设置配置项对应的环境变量
+ * - 在同目录的resources文件夹下放置HOCON配置文件application.conf
  *
  * 部分配置项设有默认值，如果未加载任何值则会使用默认值。
  * 若有配置项未加载任何值且没有默认值，服务器启动时会抛出[IllegalStateException]异常。
@@ -67,8 +67,8 @@ class ServerConfigBuilder private constructor(
 
     fun build(): ServerConfig {
         commandLineArgsPass()
-        configFilePass()
         environmentVariablesPass()
+        configFilePass()
         defaultValuePass()
         return ServerConfig(
             port = port ?: throw IllegalStateException("Port is not set"),
