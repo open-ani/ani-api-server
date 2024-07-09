@@ -3,4 +3,5 @@ FROM openjdk:17-slim as build
 WORKDIR /app
 COPY . .
 
+RUN chmod u+x gradlew
 CMD ["./gradlew", "check"]

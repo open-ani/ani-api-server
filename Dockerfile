@@ -8,7 +8,7 @@ RUN ./gradlew :server:installDist --scan
 
 FROM openjdk:17-slim
 
-ENV PORT=4394
+ENV PORT=8080
 
 COPY --from=build app/server/build/install/server ./server
 VOLUME ./server/vol
