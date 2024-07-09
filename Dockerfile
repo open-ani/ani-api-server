@@ -3,6 +3,7 @@ FROM openjdk:17-slim as build
 WORKDIR /app
 COPY . .
 
+RUN chmod u+x gradlew
 RUN ./gradlew :server:installDist --scan
 
 FROM openjdk:17-slim
