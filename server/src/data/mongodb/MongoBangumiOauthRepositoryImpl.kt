@@ -15,13 +15,14 @@ class MongoBangumiOauthRepositoryImpl : BangumiOauthRepository, KoinComponent {
     private val bangumiOauthTable = mongoCollectionProvider.bangumiOauthTable
 
     override suspend fun add(requestId: String, token: BangumiUserToken): Boolean {
-        return bangumiOauthTable.updateOne(
-            Field.of(BangumiOauthModel::requestId) eq requestId,
-            (Field.of(BangumiOauthModel::userId) setTo token.userId) then
-                    (Field.of(BangumiOauthModel::accessToken) setTo token.accessToken) then
-                    (Field.of(BangumiOauthModel::refreshToken) setTo token.refreshToken) then
-                    (Field.of(BangumiOauthModel::expiresIn) setTo token.expiresIn),
-            UpdateOptions().upsert(true)
+        return bangumiOauthTable.insertOne(
+            BangumiOauthModel(
+                requestId = requestId,
+                userId = token.userId,
+                accessToken = token.accessToken,
+                refreshToken = token.refreshToken,
+                expiresIn = token.expiresIn
+            )
         ).wasAcknowledged()
     }
 

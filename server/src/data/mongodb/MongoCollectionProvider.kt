@@ -46,19 +46,12 @@ class MongoCollectionProviderImpl : MongoCollectionProvider, KoinComponent {
         }.build(),
     )
 
-    init {
-        val coroutineScope = get<CoroutineScope>(named("topCoroutineScope"))
-        coroutineScope.launch {
-            buildIndex()
-        }
-    }
-
     private val db = client.getDatabase("ani-production")
     override val danmakuTable = db.getCollection<DanmakuModel>("danmaku")
     override val userTable = db.getCollection<UserModel>("user")
     override val bangumiOauthTable = db.getCollection<BangumiOauthModel>("bangumi-oauth")
 
-    private suspend fun buildIndex() {
+    suspend fun buildIndex() {
         if (danmakuTable.listIndexes().toList().size == 1) {
             danmakuTable.createIndex(
                 Indexes.ascending(DanmakuModel::episodeId.name),

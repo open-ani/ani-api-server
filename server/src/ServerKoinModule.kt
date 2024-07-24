@@ -1,6 +1,7 @@
 package me.him188.ani.danmaku.server
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import me.him188.ani.danmaku.server.data.*
 import me.him188.ani.danmaku.server.data.mongodb.*
 import me.him188.ani.danmaku.server.service.AniClientVersionVerifierImpl
@@ -52,7 +53,13 @@ fun getServerKoinModule(
 
         single<ClientReleaseInfoManager> { TestClientReleaseInfoManager() }
     } else {
-        single<MongoCollectionProvider> { MongoCollectionProviderImpl() }
+        single<MongoCollectionProvider> {
+            MongoCollectionProviderImpl().also {
+                topCoroutineScope.launch {
+                    it.buildIndex()
+                }
+            }
+        }
         single<DanmakuRepository> { MongoDanmakuRepositoryImpl() }
         single<UserRepository> { MongoUserRepositoryImpl() }
         single<BangumiOauthRepository> { MongoBangumiOauthRepositoryImpl() }
