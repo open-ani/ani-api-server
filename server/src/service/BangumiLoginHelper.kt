@@ -92,7 +92,7 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
                 )
             }
             if (!response.status.isSuccess()) {
-                log.error("Failed to get Bangumi token with code $code due to: Bangumi responded with ${response.status}")
+                log.error("Failed to get Bangumi token with code $code due to: Bangumi responded with ${response.status}: ${response.bodyAsText()}")
                 return null
             }
             val tokenResponse = response.body<OauthTokenResponse>()
