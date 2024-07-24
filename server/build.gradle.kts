@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.swagger)
+    implementation(libs.ktor.swagger.ui)
     implementation(libs.mongodb.driver.kotlin.coroutine)
     implementation(projects.protocol)
 

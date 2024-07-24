@@ -34,7 +34,6 @@ fun Route.danmakuRouting() {
 
     route("/danmaku/{episodeId}") {
         authenticate("auth-jwt") {
-            postDocumentation()
             post {
                 val userId = getUserIdOrRespond() ?: return@post
                 val request = call.receive<DanmakuPostRequest>()
@@ -44,7 +43,6 @@ fun Route.danmakuRouting() {
             }
         }
 
-        getDocumentation()
         get {
             val maxCount = call.request.queryParameters["maxCount"]?.toIntOrNull()
             val fromTime = call.request.queryParameters["fromTime"]?.toLongOrNull()

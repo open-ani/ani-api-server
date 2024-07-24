@@ -20,7 +20,6 @@ fun Route.userRouting() {
 
     route("/me") {
         authenticate("auth-jwt") {
-            documentation()
             get {
                 val userId = getUserIdOrRespond() ?: return@get
                 val user = service.getUser(userId)

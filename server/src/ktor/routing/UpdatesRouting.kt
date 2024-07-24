@@ -29,14 +29,12 @@ fun Route.updatesRouting() {
 
     route("/updates") {
         route("/incremental") {
-            incrementalDoc()
             get {
                 val updates = updateInfos(clientReleaseInfoManager)
                 call.respond(ReleaseUpdatesResponse(updates.map { it.version.toString() }))
             }
         }
         route("/incremental/details") {
-            incrementalDetailedDoc()
             get {
                 val updates = updateInfos(clientReleaseInfoManager)
                 val clientPlatform = call.request.queryParameters["clientPlatform"]

@@ -30,6 +30,7 @@ ksp = "2.0.0-1.0.21"
 room = "2.7.0-alpha03"
 sqlite = "2.5.0-alpha03"
 constraintlayout-compose = "0.4.0"
+ktor-swagger-ui = "3.2.0"
 
 
 compose-material3 = "1.2.1"
@@ -89,6 +90,7 @@ ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", versio
 ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktor" }
 ktor-server-status = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
+ktor-swagger-ui = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktor-swagger-ui" }
 
 # Koin
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
