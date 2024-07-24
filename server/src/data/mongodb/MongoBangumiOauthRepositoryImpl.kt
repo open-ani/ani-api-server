@@ -26,8 +26,8 @@ class MongoBangumiOauthRepositoryImpl : BangumiOauthRepository, KoinComponent {
         ).wasAcknowledged()
     }
 
-    override suspend fun getToken(requestId: String): BangumiUserToken? {
-        return bangumiOauthTable.find(Field.of(BangumiOauthModel::requestId) eq requestId).firstOrNull()?.let {
+    override suspend fun getTokenAndRemove(requestId: String): BangumiUserToken? {
+        return bangumiOauthTable.findOneAndDelete(Field.of(BangumiOauthModel::requestId) eq requestId)?.let {
             BangumiUserToken(
                 userId = it.userId,
                 accessToken = it.accessToken,

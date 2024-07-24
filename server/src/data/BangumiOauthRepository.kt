@@ -6,7 +6,7 @@ import me.him188.ani.danmaku.protocol.BangumiUserToken
 
 interface BangumiOauthRepository {
     suspend fun add(requestId: String, token: BangumiUserToken): Boolean
-    suspend fun getToken(requestId: String): BangumiUserToken?
+    suspend fun getTokenAndRemove(requestId: String): BangumiUserToken?
 }
 
 class InMemoryBangumiOauthRepositoryImpl : BangumiOauthRepository {
@@ -23,9 +23,9 @@ class InMemoryBangumiOauthRepositoryImpl : BangumiOauthRepository {
         }
     }
 
-    override suspend fun getToken(requestId: String): BangumiUserToken? {
+    override suspend fun getTokenAndRemove(requestId: String): BangumiUserToken? {
         mutex.withLock {
-            return tokens[requestId]
+            return tokens.remove(requestId)
         }
     }
 }

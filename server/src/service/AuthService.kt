@@ -62,12 +62,11 @@ class AuthServiceImpl : AuthService, KoinComponent {
 
     override suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String): Boolean {
         val token = bangumiLoginHelper.getToken(bangumiCode, requestId) ?: return false
-        bangumiOauthRepository.add(requestId, token)
-        return true
+        return bangumiOauthRepository.add(requestId, token)
     }
 
     override suspend fun getBangumiToken(requestId: String): BangumiUserToken {
-        val token = bangumiOauthRepository.getToken(requestId)
+        val token = bangumiOauthRepository.getTokenAndRemove(requestId)
             ?: throw NotFoundException("The bangumi code corresponding to the request ID has not arrived or is expired")
         return token
     }
