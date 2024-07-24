@@ -53,14 +53,15 @@ fun Route.authRouting() {
 
     route("/login/bangumi/oauth", {
         tags("Bangumi OAuth")
+        hidden = false
     }) {
         get({
-            summary = "获取Bangumi OAuth授权链接"
-            description = "获取Bangumi OAuth授权链接，用于获取Bangumi token。"
+            summary = "获取 Bangumi OAuth 授权链接"
+            description = "获取 Bangumi OAuth 授权链接，用于获取 Bangumi token。"
             request {
                 parameters {
                     queryParameter<String>("requestId") {
-                        description = "唯一请求ID，建议使用随机生成的UUID"
+                        description = "唯一请求 ID，建议使用随机生成的 UUID"
                         required = true
                         example("example") {
                             value = "123e4567-e89b-12d3-a456-426614174000"
@@ -70,7 +71,7 @@ fun Route.authRouting() {
             }
             response {
                 HttpStatusCode.MovedPermanently to {
-                    description = "重定向到Banguimi OAuth授权页面"
+                    description = "重定向到 Bangumi OAuth 授权页面"
                 }
             }
         }) {
@@ -79,19 +80,19 @@ fun Route.authRouting() {
         }
 
         get("/callback", {
-            summary = "Bangumi OAuth回调"
-            description = "用于Bangumi OAuth授权回调，用户不应自行调用该接口。"
+            summary = "Bangumi OAuth 回调"
+            description = "用于 Bangumi OAuth 授权回调，用户不应自行调用该接口。"
             request {
                 parameters {
                     queryParameter<String>("code") {
-                        description = "Bangumi OAuth授权码"
+                        description = "Bangumi OAuth 授权码"
                         required = true
                         example("example") {
                             value = "7b5fc66fcea59f975d8c17322ae3b5cb1faa1799"
                         }
                     }
                     queryParameter<String>("state") {
-                        description = "获取OAuth链接时提供的请求ID"
+                        description = "获取 OAuth 链接时提供的请求 ID"
                         required = true
                         example("example") {
                             value = "123e4567-e89b-12d3-a456-426614174000"
@@ -101,7 +102,7 @@ fun Route.authRouting() {
             }
             response {
                 HttpStatusCode.OK to {
-                    description = "返回Bangumi OAuth授权结果网页"
+                    description = "返回 Bangumi OAuth 授权结果网页"
                 }
             }
         }) {
@@ -125,12 +126,12 @@ fun Route.authRouting() {
         }
 
         get("/token", {
-            summary = "获取Bangumi token"
-            description = "获取Bangumi token，用于登录。"
+            summary = "获取 Bangumi token"
+            description = "获取 Bangumi token，用于登录。"
             request {
                 parameters {
                     queryParameter<String>("requestId") {
-                        description = "获取OAuth链接时提供的请求ID"
+                        description = "获取 OAuth 链接时提供的请求 ID"
                         required = true
                         example("example") {
                             value = "123e4567-e89b-12d3-a456-426614174000"
@@ -140,9 +141,9 @@ fun Route.authRouting() {
             }
             response {
                 HttpStatusCode.OK to {
-                    description = "成功获取Bangumi token"
+                    description = "成功获取 Bangumi token"
                     body<BangumiUserToken> {
-                        description = "Bangumi token信息，包含Bangumi用户ID、访问token、刷新token以及token有效时间"
+                        description = "Bangumi token 信息，包含 Bangumi 用户 ID、访问 token、刷新 token 以及 token 有效时间"
                         example("example") {
                             value = BangumiUserToken(
                                 userId = 800001,

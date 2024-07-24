@@ -1,5 +1,6 @@
 package me.him188.ani.danmaku.server.ktor.plugins
 
+import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.CacheControl
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -26,19 +27,28 @@ internal fun Application.configureRouting() {
         get("/favicon.ico") {
             call.respondRedirect("/static/favicon.ico")
         }
-        staticResources("/static", "static", index = null) {
-            preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI)
-            enableAutoHeadResponse()
-            cacheControl {
-                listOf(CacheControl.MaxAge(maxAgeSeconds = 64000))
+
+        route({
+            hidden = true
+        }) {
+            staticResources("/static", "static", index = null) {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI)
+                enableAutoHeadResponse()
+                cacheControl {
+                    listOf(CacheControl.MaxAge(maxAgeSeconds = 64000))
+                }
             }
         }
 
         route("/v1") {
-            danmakuRouting()
+            route({
+                hidden = true
+            }) {
+                danmakuRouting()
+                userRouting()
+                updatesRouting()
+            }
             authRouting()
-            userRouting()
-            updatesRouting()
         }
     }
 }
