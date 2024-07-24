@@ -5,14 +5,18 @@ import io.bkbn.kompendium.core.plugin.NotarizedRoute
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.html.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.routing.head
+import kotlinx.html.*
 import me.him188.ani.danmaku.protocol.BangumiLoginRequest
 import me.him188.ani.danmaku.protocol.BangumiLoginResponse
 import me.him188.ani.danmaku.server.service.AuthService
 import me.him188.ani.danmaku.server.service.JwtTokenManager
 import me.him188.ani.danmaku.server.util.exception.BadRequestException
+import me.him188.ani.danmaku.server.util.exception.HttpRequestException
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.exception.fromException
 import org.koin.ktor.ext.inject
@@ -55,7 +59,17 @@ fun Route.authRouting() {
         get("/callback") {
             val bangumiCode = call.parameters["code"] ?: throw BadRequestException("Missing parameter code")
             val requestId = call.parameters["state"] ?: throw BadRequestException("Missing parameter state")
-            service.bangumiOauthCallback(bangumiCode, requestId)
+            val succeed = service.bangumiOauthCallback(bangumiCode, requestId)
+
+            call.respondHtml {
+                head {
+                    title("Bangumi OAuth")
+                }
+                body {
+                    h1 { +"Bangumi OAuth" }
+                    p { +if (succeed) "授权成功" else "授权失败" }
+                }
+            }
         }
 
         get("/token") {

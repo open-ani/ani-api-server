@@ -17,7 +17,7 @@ interface AuthService {
     ): String
 
     fun getBangumiOauthUrl(requestId: String): String
-    suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String)
+    suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String): Boolean
     suspend fun getBangumiToken(requestId: String): BangumiUserToken
 }
 
@@ -56,14 +56,14 @@ class AuthServiceImpl : AuthService, KoinComponent {
 
     override fun getBangumiOauthUrl(requestId: String): String {
         val clientId = serverConfig.bangumi.clientId
-        val redirectUrl = URLEncoder.encode("http://${serverConfig.domain}/v1/login/bangumi/oauth/callback", "utf-8")
+        val redirectUrl = URLEncoder.encode("https://${serverConfig.domain}/v1/login/bangumi/oauth/callback", "utf-8")
         return "https://bgm.tv/oauth/authorize?client_id=$clientId&response_type=code&redirect_uri=$redirectUrl&state=$requestId"
     }
 
-    override suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String) {
-        val token = bangumiLoginHelper.getToken(bangumiCode, requestId)
-            ?: throw BadRequestException("Invalid bangumi code corresponding to the request ID")
+    override suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String): Boolean {
+        val token = bangumiLoginHelper.getToken(bangumiCode, requestId) ?: return false
         bangumiOauthRepository.add(requestId, token)
+        return true
     }
 
     override suspend fun getBangumiToken(requestId: String): BangumiUserToken {

@@ -85,7 +85,7 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
                         put("client_id", serverConfig.bangumi.clientId)
                         put("client_secret", serverConfig.bangumi.clientSecret)
                         put("code", code)
-                        put("redirect_uri", "http://${serverConfig.domain}/v1/login/bangumi/oauth/callback")
+                        put("redirect_uri", "https://${serverConfig.domain}/v1/login/bangumi/oauth/callback")
                         put("state", requestId)
                     }
                 )
