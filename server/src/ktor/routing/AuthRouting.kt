@@ -117,8 +117,8 @@ fun Route.authRouting() {
                     h1 { +"Bangumi OAuth" }
                     p { +if (succeed) "授权成功" else "授权失败" }
                     button {
+                        onClick = "window.location.href = 'https://www.bilibili.com/video/BV1hq4y1s7VH'"
                         +"返回App"
-                        onClick = "window.location.href = “https://www.bilibili.com/video/BV1hq4y1s7VH”"
                     }
                 }
             }
