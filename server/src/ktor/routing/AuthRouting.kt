@@ -6,10 +6,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import me.him188.ani.danmaku.protocol.BangumiLoginRequest
 import me.him188.ani.danmaku.protocol.BangumiLoginResponse
 import me.him188.ani.danmaku.server.service.AuthService
@@ -45,6 +43,25 @@ fun Route.authRouting() {
             )
             val userToken = jwtTokenManager.createToken(userId)
             call.respond(BangumiLoginResponse(userToken))
+        }
+    }
+
+    route("/login/bangumi/oauth") {
+        get {
+            val requestId = call.parameters["requestId"] ?: throw BadRequestException("Missing parameter requestId")
+            call.respondRedirect(service.getBangumiOauthUrl(requestId), permanent = true)
+        }
+
+        get("/callback") {
+            val bangumiCode = call.parameters["code"] ?: throw BadRequestException("Missing parameter code")
+            val requestId = call.parameters["state"] ?: throw BadRequestException("Missing parameter state")
+            service.bangumiOauthCallback(bangumiCode, requestId)
+        }
+
+        get("/token") {
+            val requestId = call.parameters["requestId"] ?: throw BadRequestException("Missing parameter requestId")
+            val bangumiToken = service.getBangumiToken(requestId)
+            call.respond(bangumiToken)
         }
     }
 }

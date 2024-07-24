@@ -32,3 +32,10 @@ data class BangumiLoginResponse(
     val token: String,
 )
 
+@Serializable
+data class BangumiUserToken(
+    val userId: Int,
+    val expiresIn: Long,  // in seconds
+    val accessToken: String,
+    val refreshToken: String,
+)

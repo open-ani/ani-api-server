@@ -1,14 +1,8 @@
 package me.him188.ani.danmaku.server
 
 import kotlinx.coroutines.CoroutineScope
-import me.him188.ani.danmaku.server.data.DanmakuRepository
-import me.him188.ani.danmaku.server.data.InMemoryDanmakuRepositoryImpl
-import me.him188.ani.danmaku.server.data.InMemoryUserRepositoryImpl
-import me.him188.ani.danmaku.server.data.UserRepository
-import me.him188.ani.danmaku.server.data.mongodb.MongoCollectionProvider
-import me.him188.ani.danmaku.server.data.mongodb.MongoCollectionProviderImpl
-import me.him188.ani.danmaku.server.data.mongodb.MongoDanmakuRepositoryImpl
-import me.him188.ani.danmaku.server.data.mongodb.MongoUserRepositoryImpl
+import me.him188.ani.danmaku.server.data.*
+import me.him188.ani.danmaku.server.data.mongodb.*
 import me.him188.ani.danmaku.server.service.AniClientVersionVerifierImpl
 import me.him188.ani.danmaku.server.service.AuthService
 import me.him188.ani.danmaku.server.service.AuthServiceImpl
@@ -53,6 +47,7 @@ fun getServerKoinModule(
     if (config.testing) {
         single<DanmakuRepository> { InMemoryDanmakuRepositoryImpl() }
         single<UserRepository> { InMemoryUserRepositoryImpl() }
+        single<BangumiOauthRepository> { InMemoryBangumiOauthRepositoryImpl() }
         single<BangumiLoginHelper> { TestBangumiLoginHelperImpl() }
 
         single<ClientReleaseInfoManager> { TestClientReleaseInfoManager() }
@@ -60,6 +55,7 @@ fun getServerKoinModule(
         single<MongoCollectionProvider> { MongoCollectionProviderImpl() }
         single<DanmakuRepository> { MongoDanmakuRepositoryImpl() }
         single<UserRepository> { MongoUserRepositoryImpl() }
+        single<BangumiOauthRepository> { MongoBangumiOauthRepositoryImpl() }
         single<BangumiLoginHelper> { BangumiLoginHelperImpl() }
 
         single<ClientReleaseInfoManager> {

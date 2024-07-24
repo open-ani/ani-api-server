@@ -1,11 +1,13 @@
 package me.him188.ani.danmaku.server.service
 
+import me.him188.ani.danmaku.protocol.BangumiUserToken
+import me.him188.ani.danmaku.server.ServerConfig
+import me.him188.ani.danmaku.server.data.BangumiOauthRepository
 import me.him188.ani.danmaku.server.data.UserRepository
-import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
-import me.him188.ani.danmaku.server.util.exception.OperationFailedException
-import me.him188.ani.danmaku.server.util.exception.UnauthorizedException
+import me.him188.ani.danmaku.server.util.exception.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.net.URLEncoder
 
 interface AuthService {
     suspend fun loginBangumi(
@@ -13,12 +15,18 @@ interface AuthService {
         clientVersion: String? = null,
         clientPlatform: String? = null
     ): String
+
+    fun getBangumiOauthUrl(requestId: String): String
+    suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String)
+    suspend fun getBangumiToken(requestId: String): BangumiUserToken
 }
 
 class AuthServiceImpl : AuthService, KoinComponent {
     private val bangumiLoginHelper: BangumiLoginHelper by inject()
     private val userRepository: UserRepository by inject()
+    private val bangumiOauthRepository: BangumiOauthRepository by inject()
     private val clientVersionVerifier: ClientVersionVerifier by inject()
+    private val serverConfig: ServerConfig by inject()
 
     override suspend fun loginBangumi(
         bangumiToken: String,
@@ -44,6 +52,24 @@ class AuthServiceImpl : AuthService, KoinComponent {
             userRepository.addClientPlatform(userId, clientPlatform)
         }
         return userId
+    }
+
+    override fun getBangumiOauthUrl(requestId: String): String {
+        val clientId = serverConfig.bangumi.clientId
+        val redirectUrl = URLEncoder.encode("http://${serverConfig.domain}/v1/login/bangumi/oauth/callback", "utf-8")
+        return "https://bgm.tv/oauth/authorize?client_id=$clientId&response_type=code&redirect_uri=$redirectUrl&state=$requestId"
+    }
+
+    override suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String) {
+        val token = bangumiLoginHelper.getToken(bangumiCode, requestId)
+            ?: throw BadRequestException("Invalid bangumi code corresponding to the request ID")
+        bangumiOauthRepository.add(requestId, token)
+    }
+
+    override suspend fun getBangumiToken(requestId: String): BangumiUserToken {
+        val token = bangumiOauthRepository.getToken(requestId)
+            ?: throw NotFoundException("The bangumi code corresponding to the request ID has not arrived or is expired")
+        return token
     }
 
     private suspend fun registerAndGetId(user: BangumiUser): String {

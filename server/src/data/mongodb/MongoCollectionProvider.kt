@@ -6,6 +6,10 @@ import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoCollection
+import data.model.BangumiOauthModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import me.him188.ani.danmaku.server.ServerConfig
 import me.him188.ani.danmaku.server.data.model.DanmakuModel
 import me.him188.ani.danmaku.server.data.model.UserModel
@@ -14,11 +18,15 @@ import org.bson.UuidRepresentation
 import org.bson.codecs.configuration.CodecRegistries
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.qualifier.named
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
 
 
 interface MongoCollectionProvider {
     val danmakuTable: MongoCollection<DanmakuModel>
     val userTable: MongoCollection<UserModel>
+    val bangumiOauthTable: MongoCollection<BangumiOauthModel>
 }
 
 class MongoCollectionProviderImpl : MongoCollectionProvider, KoinComponent {
@@ -38,17 +46,39 @@ class MongoCollectionProviderImpl : MongoCollectionProvider, KoinComponent {
         }.build(),
     )
 
+    init {
+        val coroutineScope = get<CoroutineScope>(named("topCoroutineScope"))
+        coroutineScope.launch {
+            buildIndex()
+        }
+    }
+
     private val db = client.getDatabase("ani-production")
     override val danmakuTable = db.getCollection<DanmakuModel>("danmaku")
     override val userTable = db.getCollection<UserModel>("user")
+    override val bangumiOauthTable = db.getCollection<BangumiOauthModel>("bangumi-oauth")
 
     private suspend fun buildIndex() {
-        danmakuTable.createIndex(
-            Indexes.ascending(DanmakuModel::episodeId.name),
-        )
-        userTable.createIndex(
-            Indexes.ascending(UserModel::bangumiUserId.name),
-            IndexOptions().unique(true),
-        )
+        if (danmakuTable.listIndexes().toList().isNotEmpty()) {
+            danmakuTable.createIndex(
+                Indexes.ascending(DanmakuModel::episodeId.name),
+            )
+        }
+        if (userTable.listIndexes().toList().isNotEmpty()) {
+            userTable.createIndex(
+                Indexes.ascending(UserModel::bangumiUserId.name),
+                IndexOptions().unique(true),
+            )
+        }
+        if (bangumiOauthTable.listIndexes().toList().isNotEmpty()) {
+            bangumiOauthTable.createIndex(
+                Indexes.ascending(BangumiOauthModel::requestId.name),
+                IndexOptions().unique(true),
+            )
+            bangumiOauthTable.createIndex(
+                Indexes.ascending(BangumiOauthModel::createTime.name),
+                IndexOptions().expireAfter(1.minutes.inWholeSeconds, TimeUnit.SECONDS),
+            )
+        }
     }
 }

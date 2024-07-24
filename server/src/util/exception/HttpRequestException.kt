@@ -23,7 +23,9 @@ class UnauthorizedException : HttpRequestException() {
     override val statusMessage: String = "Unauthorized"
 }
 
-class NotFoundException : HttpRequestException() {
+class NotFoundException(
+    override val message: String,
+) : HttpRequestException() {
     override val statusCode: Int = 404
     override val statusMessage: String = "Not Found"
 }
