@@ -4,11 +4,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import me.him188.ani.danmaku.protocol.BangumiUserToken
 import me.him188.ani.danmaku.server.ServerConfig
 import org.koin.core.component.KoinComponent
@@ -58,14 +61,16 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
             val response = httpClient.get(bangumiLoginUrl) {
                 bearerAuth(bangumiToken)
             }
-            if (response.status != HttpStatusCode.OK) {
+            if (!response.status.isSuccess()) {
                 log.info("Failed to login to Bangumi due to: Bangumi responded with ${response.status}")
                 return null
             }
             val user = response.body<User>()
             return BangumiUser(user.id, user.nickname, user.avatar.small, user.avatar.medium, user.avatar.large)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            log.info("Failed to login to Bangumi due to: ${e.printStackTrace()}")
+            log.error("Failed to get Bangumi token due to:", e)
             return null
         }
     }
@@ -73,14 +78,20 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
     override suspend fun getToken(code: String, requestId: String): BangumiUserToken? {
         try {
             val response = httpClient.post(bangumiOauthTokenUrl) {
-                parameter("grant_type", "authorization_code")
-                parameter("client_id", serverConfig.bangumi.clientId)
-                parameter("client_secret", serverConfig.bangumi.clientSecret)
-                parameter("code", code)
-                parameter("state", requestId)
+                contentType(ContentType.Application.Json)
+                setBody(
+                    buildJsonObject {
+                        put("grant_type", "authorization_code")
+                        put("client_id", serverConfig.bangumi.clientId)
+                        put("client_secret", serverConfig.bangumi.clientSecret)
+                        put("code", code)
+                        put("redirect_uri", "http://${serverConfig.domain}/v1/login/bangumi/oauth/callback")
+                        put("state", requestId)
+                    }
+                )
             }
-            if (response.status != HttpStatusCode.OK) {
-                log.info("Failed to get Bangumi token due to: Bangumi responded with ${response.status}")
+            if (!response.status.isSuccess()) {
+                log.error("Failed to get Bangumi token with code $code due to: Bangumi responded with ${response.status}")
                 return null
             }
             val tokenResponse = response.body<OauthTokenResponse>()
@@ -90,8 +101,10 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
                 accessToken = tokenResponse.accessToken,
                 refreshToken = tokenResponse.refreshToken,
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            log.info("Failed to get Bangumi token due to: ${e.printStackTrace()}")
+            log.error("Failed to get Bangumi token with code $code due to:", e)
             return null
         }
     }
@@ -121,7 +134,6 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
         val scope: String?,
         @SerialName("refresh_token") val refreshToken: String,
         @SerialName("user_id") val userId: Int,
-        val state: String,
     )
 }
 
