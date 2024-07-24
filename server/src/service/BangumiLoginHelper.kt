@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.*
@@ -62,7 +63,7 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
                 bearerAuth(bangumiToken)
             }
             if (!response.status.isSuccess()) {
-                log.info("Failed to login to Bangumi due to: Bangumi responded with ${response.status}")
+                log.info("Failed to login to Bangumi due to: Bangumi responded with ${response.status}: ${response.bodyAsText()}")
                 return null
             }
             val user = response.body<User>()
