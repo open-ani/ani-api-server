@@ -23,8 +23,8 @@
 <script>
     let hint = document.querySelector('#hint');
     function detectDevice() {
-        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-        var mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+        let userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        let mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mac OS/i;
         if (mobileRegex.test(userAgent)) {
             window.addEventListener("load", callbackTrigger);
             hint.innerHTML = `若没有正常跳转请点击 <a href="JavaScript: callbackTrigger();" style="text-decoration: none;">手动跳转</a>`;
