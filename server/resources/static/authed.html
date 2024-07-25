@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
+    <link rel="icon" type="image/svg+xml" href="https://myani.org/logo.png" />
+    <title>Ani Oauth</title>
+</head>
+
+<body>
+    <div style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+        <div class="loader"></div>
+        <span style="font-size: 24px; font-weight: 520; margin: 4px;">
+            你已登录
+        </span>
+        <span style="font-size: 14px; color: #a3a299; padding-bottom: 2em;" id="hint">
+            error
+        </span>
+    </div>
+</body>
+
+<script>
+    let hint = document.querySelector('#hint');
+    function detectDevice() {
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        var mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+        if (mobileRegex.test(userAgent)) {
+            window.addEventListener("load", callbackTrigger);
+            hint.innerHTML = `若没有正常跳转请点击 <a href="JavaScript: callbackTrigger();" style="text-decoration: none;">手动跳转</a>`;
+        } else {
+            hint.innerHTML = `现在你可以关闭此页面返回Ani`;
+        }
+    }
+    const callbackTrigger = () => {
+        window.location.href = "ani://bangumi-oauth-callback";
+    }
+    detectDevice();
+</script>
+
+<style>
+    body,
+    html {
+        background-color: #fafaf8;
+        height: 100%;
+    }
+
+    .loader {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 4px solid rgba(165, 220, 134, 0.2);
+        border-left-color: #A5DC86;
+        animation: animation_collect 0.6s linear 1 both;
+    }
+
+    @keyframes animation_collect {
+        0% {
+            transform: rotate(270deg);
+            border-left-color: #A5DC86;
+        }
+
+        25% {
+            border-left-color: #A5DC86;
+        }
+
+        50% {
+            border-left-color: #A5DC86;
+        }
+
+        75% {
+            border-left-color: #A5DC86;
+        }
+
+        100% {
+            border-left-color: rgba(165, 220, 134, 0.2);
+            transform: rotate(0deg);
+        }
+    }
+
+    .loader::before {
+        position: absolute;
+        content: '';
+        top: 50%;
+        left: 15px;
+        border: 4px solid #A5DC86;
+        border-left-width: 0;
+        border-bottom-width: 0;
+        transform: scaleX(-1) rotate(135deg);
+        transform-origin: left top;
+        animation: animation_true 0.5s 1s linear 1 both;
+        opacity: 0;
+    }
+
+    @keyframes animation_true {
+        0% {
+            opacity: 0;
+            width: 0px;
+            height: 0px;
+        }
+
+        33% {
+            opacity: 1;
+            width: 20px;
+            height: 0px;
+        }
+
+        100% {
+            opacity: 1;
+            width: 20px;
+            height: 40px;
+        }
+    }
+</style>
+
+</html>

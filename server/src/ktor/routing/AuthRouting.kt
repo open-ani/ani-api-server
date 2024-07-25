@@ -22,6 +22,7 @@ import me.him188.ani.danmaku.server.util.exception.BadRequestException
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.exception.fromException
 import org.koin.ktor.ext.inject
+import java.io.File
 import java.util.Locale
 
 fun Route.authRouting() {
@@ -110,16 +111,16 @@ fun Route.authRouting() {
             val requestId = call.parameters["state"] ?: throw BadRequestException("Missing parameter state")
             val succeed = service.bangumiOauthCallback(bangumiCode, requestId)
 
-            call.respondHtml {
-                head {
-                    title("Bangumi OAuth")
-                }
-                body {
-                    h1 { +"Bangumi OAuth" }
-                    p { +if (succeed) "授权成功" else "授权失败" }
-                    button {
-                        onClick = "window.location.href = 'https://www.bilibili.com/video/BV1hq4y1s7VH'"
-                        +"返回App"
+            if (succeed) {
+                call.respondFile(File("static/authed.html"))
+            } else {
+                call.respondHtml {
+                    head {
+                        title("Bangumi OAuth")
+                    }
+                    body {
+                        h1 { +"Bangumi OAuth" }
+                        p { +"授权失败" }
                     }
                 }
             }
