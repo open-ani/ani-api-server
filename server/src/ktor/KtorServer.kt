@@ -55,4 +55,3 @@ internal fun Application.serverModule(config: ServerConfig) {
     configureAutoHeadResponse()
     configureRouting()
 }
-
