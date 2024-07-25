@@ -98,7 +98,11 @@ fun Route.updatesRouting() {
         get("/latest", {
 
         }) {
+            val releaseClass = call.request.queryParameters["releaseClass"]?.let {
+                ReleaseClass.fromStringOrNull(it)
+            } ?: ReleaseClass.STABLE
 
+            val updates = clientReleaseInfoManager.getLatestRelease("", releaseClass)
         }
     }
 }

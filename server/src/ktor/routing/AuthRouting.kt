@@ -1,18 +1,13 @@
 package me.him188.ani.danmaku.server.ktor.routing
 
-import io.bkbn.kompendium.core.metadata.PostInfo
-import io.bkbn.kompendium.core.plugin.NotarizedRoute
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 import io.github.smiley4.ktorswaggerui.dsl.routing.post
 import io.ktor.http.*
 import io.ktor.server.application.call
-import io.ktor.server.application.install
-import io.ktor.server.html.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.*
 import me.him188.ani.danmaku.protocol.BangumiLoginRequest
 import me.him188.ani.danmaku.protocol.BangumiLoginResponse
 import me.him188.ani.danmaku.protocol.BangumiUserToken
@@ -22,7 +17,6 @@ import me.him188.ani.danmaku.server.util.exception.BadRequestException
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.exception.fromException
 import org.koin.ktor.ext.inject
-import java.io.File
 import java.util.Locale
 
 fun Route.authRouting() {
@@ -149,17 +143,9 @@ fun Route.authRouting() {
                 val succeed = service.bangumiOauthCallback(bangumiCode, requestId)
 
                 if (succeed) {
-                    call.respondFile(File("static/authed.html"))
+                    call.respondRedirect("/static/authed.html", permanent = false)
                 } else {
-                    call.respondHtml {
-                        head {
-                            title("Bangumi OAuth")
-                        }
-                        body {
-                            h1 { +"Bangumi OAuth" }
-                            p { +"授权失败" }
-                        }
-                    }
+                    call.respondRedirect("/static/authFailed.html", permanent = false)
                 }
             }
 
