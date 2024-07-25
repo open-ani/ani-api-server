@@ -46,8 +46,8 @@ internal fun Application.configureRouting() {
             }) {
                 danmakuRouting()
                 userRouting()
-                updatesRouting()
             }
+            updatesRouting()
             authRouting()
         }
     }
