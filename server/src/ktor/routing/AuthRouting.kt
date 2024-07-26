@@ -143,9 +143,9 @@ fun Route.authRouting() {
                 val succeed = service.bangumiOauthCallback(bangumiCode, requestId)
 
                 if (succeed) {
-                    call.respondRedirect("/static/authed.html", permanent = false)
+                    call.respondRedirect("/static/immutable/authed.v1.html", permanent = false)
                 } else {
-                    call.respondRedirect("/static/authFailed.html", permanent = false)
+                    call.respondRedirect("/static/immutable/authFailed.v1.html", permanent = false)
                 }
             }
 

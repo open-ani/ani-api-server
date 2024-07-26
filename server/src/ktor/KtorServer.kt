@@ -51,6 +51,7 @@ internal fun Application.serverModule(config: ServerConfig) {
     configureSerialization()
     configureSecurity()
     configureSwaggerUI()
+    configureCachingHeaders()
 
     configureAutoHeadResponse()
     configureRouting()

@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.ktor.server.auto.head.response)
     implementation(libs.ktor.server.html.builder)
     implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.caching.headers)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.content.negotiation)

@@ -1,5 +1,6 @@
 package me.him188.ani.danmaku.server.ktor.plugins
 
+import com.mongodb.annotations.Immutable
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.CacheControl
 import io.ktor.server.application.Application
@@ -34,8 +35,15 @@ internal fun Application.configureRouting() {
             staticResources("/static", "static", index = null) {
                 preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI)
                 enableAutoHeadResponse()
-                cacheControl {
-                    listOf(CacheControl.MaxAge(maxAgeSeconds = 64000))
+                cacheControl { url ->
+                    when {
+                        url.path.contains("/static/immutable") -> {
+                            listOf(CacheControl.MaxAge(maxAgeSeconds = 31536000)) // Immutable
+                        }
+                        else -> {
+                            listOf(CacheControl.MaxAge(maxAgeSeconds = 64000))
+                        }
+                    }
                 }
             }
         }
