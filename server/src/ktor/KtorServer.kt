@@ -52,6 +52,7 @@ internal fun Application.serverModule(config: ServerConfig) {
     configureSecurity()
     configureSwaggerUI()
     configureCachingHeaders()
+    configureCors()
 
     configureAutoHeadResponse()
     configureRouting()

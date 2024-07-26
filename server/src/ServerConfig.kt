@@ -31,6 +31,7 @@ class ServerConfig(
     val jwt: JwtConfig,
     val bangumi: BangumiConfig,
     val githubAccessToken: String?,
+    val corsAllowHost: List<String>,
 ) {
     class JwtConfig(
         val secret: ByteArray,
@@ -60,6 +61,7 @@ class ServerConfigBuilder private constructor(
     private var jwt: JwtConfigBuilder = JwtConfigBuilder()
     private var bangumi: BangumiConfigBuilder = BangumiConfigBuilder()
     var githubAccessToken: String? = null
+    var corsAllowHost: List<String>? = null
 
     @KtorDsl
     class JwtConfigBuilder {
@@ -106,6 +108,7 @@ class ServerConfigBuilder private constructor(
                 clientSecret = bangumi.clientSecret ?: throw IllegalStateException("Bangumi clientSecret is not set"),
             ),
             githubAccessToken = githubAccessToken,
+            corsAllowHost = corsAllowHost ?: throw IllegalStateException("Config corsAllowHost is not set"),
         )
     }
 
@@ -148,6 +151,7 @@ class ServerConfigBuilder private constructor(
         bangumi.clientId = bangumi.clientId ?: config.propertyOrNull("bangumi.clientId")?.getString()
         bangumi.clientSecret = bangumi.clientSecret ?: config.propertyOrNull("bangumi.clientSecret")?.getString()
         githubAccessToken = githubAccessToken ?: config.propertyOrNull("github.accessToken")?.getString()
+        corsAllowHost = corsAllowHost ?: config.propertyOrNull("server.cors.allowHosts")?.getList()
     }
 
     private fun environmentVariablesPass() {
@@ -178,6 +182,7 @@ class ServerConfigBuilder private constructor(
         jwt.secret = jwt.secret ?: generateSecureRandomBytes()
         jwt.expiration = jwt.expiration ?: 7.days.inWholeMilliseconds
         jwt.realm = jwt.realm ?: "Ani Danmaku"
+        corsAllowHost = corsAllowHost ?: emptyList()
     }
 
     companion object {
