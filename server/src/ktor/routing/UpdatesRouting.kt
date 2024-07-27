@@ -9,14 +9,12 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.PipelineContext
-import me.him188.ani.danmaku.protocol.ReleaseClass
-import me.him188.ani.danmaku.protocol.ReleaseUpdatesDetailedResponse
-import me.him188.ani.danmaku.protocol.ReleaseUpdatesResponse
-import me.him188.ani.danmaku.protocol.UpdateInfo
+import me.him188.ani.danmaku.protocol.*
 import me.him188.ani.danmaku.server.service.ClientReleaseInfoManager
 import me.him188.ani.danmaku.server.service.ReleaseInfo
 import me.him188.ani.danmaku.server.util.exception.BadRequestException
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
+import me.him188.ani.danmaku.server.util.exception.NotFoundException
 import me.him188.ani.danmaku.server.util.exception.fromException
 import org.koin.ktor.ext.inject
 
@@ -37,7 +35,7 @@ fun Route.updatesRouting() {
                     body<ReleaseUpdatesResponse> {
                         description = "更新版本号列表"
                         example("example") {
-                            ReleaseUpdatesResponse(listOf("3.0.0-rc01", "3.0.0-rc02", "3.0.0-rc03"))
+                            value = ReleaseUpdatesResponse(listOf("3.0.0-rc01", "3.0.0-rc02", "3.0.0-rc03"))
                         }
                     }
                 }
@@ -61,7 +59,7 @@ fun Route.updatesRouting() {
                     description = "成功获取内容"
                     body<ReleaseUpdatesDetailedResponse> {
                         description = "更新版本详细信息列表"
-                        example("example") { exampleReleaseUpdatesDetailedResponse }
+                        example("example") { value = exampleReleaseUpdatesDetailedResponse }
                     }
                 }
                 HttpStatusCode.BadRequest to {
@@ -81,7 +79,10 @@ fun Route.updatesRouting() {
                 ReleaseUpdatesDetailedResponse(
                     updates.mapNotNull {
                         val downloadUrls = try {
-                            clientReleaseInfoManager.parseDownloadUrls(it.version, "$clientPlatform-$clientArch")
+                            clientReleaseInfoManager.parseDownloadUrlsByPlatformArch(
+                                it.version,
+                                "$clientPlatform-$clientArch"
+                            )
                         } catch (e: IllegalArgumentException) {
                             return@mapNotNull null
                         }
@@ -96,13 +97,47 @@ fun Route.updatesRouting() {
             )
         }
         get("/latest", {
-
+            summary = "获取最新版本下载链接"
+            description = "返回最新版本的下载链接及二维码及二维码，不包括版本更新信息。"
+            request {
+                queryParameter<String>("releaseClass") {
+                    description =
+                        "版本的发布类型，可选值：alpha, beta, rc, stable，默认值为 stable。不合法的发布类型会导致服务器返回 400 Bad Request 错误。"
+                    required = false
+                }
+            }
+            response {
+                HttpStatusCode.OK to {
+                    description = "成功获取内容"
+                    body<LatestVersionInfo> {
+                        description = "最新版本版本号，发布时间，下载链接与二维码链接"
+                        example("example") { value = exampleLatestVersionInfo }
+                    }
+                }
+                HttpStatusCode.BadRequest to {
+                    description = "请求参数错误"
+                }
+            }
         }) {
             val releaseClass = call.request.queryParameters["releaseClass"]?.let {
-                ReleaseClass.fromStringOrNull(it)
+                ReleaseClass.fromStringOrNull(it) ?: throw BadRequestException("Invalid release class")
             } ?: ReleaseClass.STABLE
 
-            val updates = clientReleaseInfoManager.getLatestRelease("", releaseClass)
+            val latest = clientReleaseInfoManager.getLatestRelease(null, releaseClass)
+                ?: throw NotFoundException("No latest release found")
+            val latestVersionInfo = LatestVersionInfo(
+                latest.version.toString(),
+                latest.assetNames.filter { !it.endsWith("qrcode.png") }.associate { assetName ->
+                    getPlatformArchFromAssetName(assetName) to
+                            clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
+                },
+                latest.publishTime,
+                latest.assetNames.filter { it.endsWith("qrcode.png") }.map { assetName ->
+                    clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
+                }.flatten(),
+            )
+
+            call.respond(latestVersionInfo)
         }
     }
 }
@@ -182,3 +217,43 @@ private val exampleReleaseUpdatesDetailedResponse = ReleaseUpdatesDetailedRespon
         ),
     )
 )
+
+private val exampleLatestVersionInfo = LatestVersionInfo(
+    "3.5.0",
+    mapOf(
+        "android" to listOf(
+            "https://d.myani.org/v3.5.0/ani-3.5.0.apk",
+            "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0.apk"
+        ),
+        "windows-x86_64" to listOf(
+            "https://d.myani.org/v3.5.0/ani-3.5.0-windows-x86_64.zip",
+            "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0-windows-x86_64.zip"
+        ),
+        "macos-x86_64" to listOf(
+            "https://d.myani.org/v3.5.0/ani-3.5.0-macos-x86_64.dmg",
+            "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0-macos-x86_64.dmg"
+        ),
+        "macos-aarch64" to listOf(
+            "https://d.myani.org/v3.5.0/ani-3.5.0-macos-aarch64.dmg",
+            "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0-macos-aarch64.dmg"
+        ),
+    ),
+    1721869947,
+    listOf(
+        "https://d.myani.org/v3.5.0/ani-3.5.0.apk.cloudflare.qrcode.png",
+        "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0.apk.cloudflare.qrcode.png",
+        "https://d.myani.org/v3.5.0/ani-3.5.0.apk.github.qrcode.png",
+        "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0.apk.github.qrcode.png"
+    ),
+)
+
+private fun getPlatformArchFromAssetName(assetName: String): String {
+    val arch = assetName.substringAfterLast('-').substringBeforeLast('.')
+    return when {
+        assetName.endsWith(".apk") -> "android"
+        assetName.endsWith(".zip") -> "windows-$arch"
+        assetName.endsWith(".dmg") -> "macos-$arch"
+        assetName.endsWith(".deb") -> "debian-$arch"
+        else -> throw IllegalArgumentException("Unknown client arch from asset name: $assetName")
+    }
+}

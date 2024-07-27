@@ -21,6 +21,14 @@ data class UpdateInfo(
     val description: String,
 )
 
+@Serializable
+data class LatestVersionInfo(
+    val version: String,
+    val downloadUrlAlternativesMap: Map<String, List<String>>,  // key: platform, value: download urls
+    val publishTime: Long, // seconds
+    val qrcodeUrls: List<String>,
+)
+
 @Serializable // do not change field name, used both in app and server
 enum class ReleaseClass {
     /**

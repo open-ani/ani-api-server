@@ -18,10 +18,13 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.him188.ani.danmaku.protocol.ReleaseClass
 import me.him188.ani.danmaku.server.ServerConfig
+import me.him188.ani.danmaku.server.ServerConfigBuilder
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.semver.SemVersion
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import java.time.ZonedDateTime
 import java.util.Locale
 import kotlin.time.Duration.Companion.minutes
@@ -29,7 +32,7 @@ import kotlin.time.Duration.Companion.seconds
 
 interface ClientReleaseInfoManager {
     suspend fun getLatestRelease(
-        clientPlatformArch: String,
+        clientPlatformArch: String?,
         releaseClass: ReleaseClass,
     ): ReleaseInfo?
 
@@ -39,7 +42,8 @@ interface ClientReleaseInfoManager {
         releaseClass: ReleaseClass,
     ): List<ReleaseInfo>
 
-    fun parseDownloadUrls(clientVersion: SemVersion, clientPlatformArch: String): List<String>
+    fun parseDownloadUrlsByPlatformArch(clientVersion: SemVersion, clientPlatformArch: String): List<String>
+    fun parseDownloadUrlsByAssetName(clientVersion: SemVersion, assetName: String): List<String>
 }
 
 @Serializable
@@ -59,16 +63,16 @@ class ClientReleaseInfoManagerImpl(
     private val bufferMutex = Mutex()
     private val bufferExpired get() = System.currentTimeMillis() - lastRecordTime > bufferExpirationTime
 
-    override suspend fun getLatestRelease(clientPlatformArch: String, releaseClass: ReleaseClass): ReleaseInfo? {
+    override suspend fun getLatestRelease(clientPlatformArch: String?, releaseClass: ReleaseClass): ReleaseInfo? {
         return getLatestReleaseInternal(getBuffer(), clientPlatformArch, releaseClass)
     }
 
     private fun getLatestReleaseInternal(
         releaseInfoList: List<ReleaseInfo>,
-        clientPlatformArch: String,
+        clientPlatformArch: String?,
         releaseClass: ReleaseClass
     ): ReleaseInfo? {
-        val platformArch = clientPlatformArch.lowercase()
+        val platformArch = clientPlatformArch?.lowercase()
         return releaseInfoList.lastOrNull { info ->
             /**
              * The class of target release version should be more stable than or equal to the required release class.
@@ -78,11 +82,12 @@ class ClientReleaseInfoManagerImpl(
              * the target release version should only be [ReleaseClass.STABLE].
              */
             info.version.parseClass().moreStableThan(releaseClass) && info.assetNames.any {
-                if (platformArch.startsWith("android")) {
-                    it.endsWith(".apk")
-                } else {
-                    it.contains(platformArch)
-                }
+                platformArch == null ||
+                        if (platformArch.startsWith("android")) {
+                            it.endsWith(".apk")
+                        } else {
+                            it.contains(platformArch)
+                        }
             }
         }
     }
@@ -105,7 +110,7 @@ class ClientReleaseInfoManagerImpl(
         return buffer.dropWhile { it.version <= semVersion }.takeWhile { it.version <= latestRelease.version }
     }
 
-    override fun parseDownloadUrls(clientVersion: SemVersion, clientPlatformArch: String): List<String> {
+    override fun parseDownloadUrlsByPlatformArch(clientVersion: SemVersion, clientPlatformArch: String): List<String> {
         val platformArch = clientPlatformArch.lowercase()
         val distributionSuffix = when {
             platformArch.startsWith("debian") -> "-$platformArch.deb"
@@ -114,9 +119,14 @@ class ClientReleaseInfoManagerImpl(
             platformArch.startsWith("android") -> ".apk"
             else -> throw IllegalArgumentException("Unknown client arch: $platformArch")
         }
+        val assetName = "ani-${clientVersion}${distributionSuffix}"
+        return parseDownloadUrlsByAssetName(clientVersion, assetName)
+    }
+
+    override fun parseDownloadUrlsByAssetName(clientVersion: SemVersion, assetName: String): List<String> {
         return listOf(
-            "https://d.myani.org/v${clientVersion}/ani-${clientVersion}${distributionSuffix}",
-            "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v${clientVersion}/ani-${clientVersion}${distributionSuffix}",
+            "https://d.myani.org/v${clientVersion}/$assetName",
+            "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v${clientVersion}/$assetName",
         )
     }
 
@@ -212,11 +222,11 @@ private suspend fun <T> tryUntilSuccess(timeLimit: Long, block: suspend () -> T)
 }
 
 class TestClientReleaseInfoManager : ClientReleaseInfoManager {
-    override suspend fun getLatestRelease(clientPlatformArch: String, releaseClass: ReleaseClass): ReleaseInfo? {
+    override suspend fun getLatestRelease(clientPlatformArch: String?, releaseClass: ReleaseClass): ReleaseInfo? {
         return ReleaseInfo(
             version = SemVersion(2, 0, 0),
             htmlUrl = "testUrl/v2.0.0",
-            assetNames = setOf("testAsset"),
+            assetNames = setOf("testAsset-macos-aarch64.dmg", "testAsset-windows-x86_64.zip", "testAsset.apk"),
             publishTime = 0,
             description = "This is version 2.0.0",
         )
@@ -252,8 +262,12 @@ class TestClientReleaseInfoManager : ClientReleaseInfoManager {
         )
     }
 
-    override fun parseDownloadUrls(clientVersion: SemVersion, clientPlatformArch: String): List<String> {
-        return listOf("testUrl/v${clientVersion}")
+    override fun parseDownloadUrlsByPlatformArch(clientVersion: SemVersion, clientPlatformArch: String): List<String> {
+        return listOf("testUrl/v${clientVersion}/$clientPlatformArch.zip")
+    }
+
+    override fun parseDownloadUrlsByAssetName(clientVersion: SemVersion, assetName: String): List<String> {
+        return listOf("testUrl/v${clientVersion}/$assetName")
     }
 }
 
@@ -262,14 +276,14 @@ class TestClientReleaseInfoManager : ClientReleaseInfoManager {
 //        modules(module {
 //            single {
 //                ServerConfigBuilder.create(arrayOf()) {
-//                    githubAccessToken = "-- token here --"
+//                    githubAccessToken = "--token here--"
 //                }.build()
 //            }
 //        })
 //
 //    }
 //    val manager = ClientReleaseInfoManagerImpl()
-//    val updates = manager.getAllUpdateLogs("3.0.0-beta20", "android-aarch64", ReleaseClass.RC)
+//    val updates = manager.getLatestRelease(null, ReleaseClass.STABLE)
 //    println(updates)
-//    println(manager.parseDownloadUrls(SemVersion(3, 0, 0, "beta20"), "android-aarch64"))
+//    println(manager.parseDownloadUrlsByPlatformArch(SemVersion(3, 0, 0, "beta20"), "android-aarch64"))
 //}
