@@ -1,5 +1,6 @@
 package me.him188.ani.danmaku.server.service
 
+import me.him188.ani.danmaku.protocol.AnonymousBangumiUserToken
 import me.him188.ani.danmaku.protocol.BangumiUserToken
 import me.him188.ani.danmaku.server.ServerConfig
 import me.him188.ani.danmaku.server.data.BangumiOauthRepository
@@ -19,6 +20,7 @@ interface AuthService {
     fun getBangumiOauthUrl(requestId: String): String
     suspend fun bangumiOauthCallback(bangumiCode: String, requestId: String): Boolean
     suspend fun getBangumiToken(requestId: String): BangumiUserToken
+    suspend fun refreshBangumiToken(refreshToken: String): AnonymousBangumiUserToken
 }
 
 class AuthServiceImpl : AuthService, KoinComponent {
@@ -33,7 +35,7 @@ class AuthServiceImpl : AuthService, KoinComponent {
         clientVersion: String?,
         clientPlatform: String?
     ): String {
-        val bangumiUser = bangumiLoginHelper.login(bangumiToken) ?: throw UnauthorizedException()
+        val bangumiUser = bangumiLoginHelper.login(bangumiToken) ?: throw UnauthorizedException("Invalid bangumi token")
         if (clientVersion != null) {
             if (!clientVersionVerifier.verify(clientVersion.trim())) {
                 throw InvalidClientVersionException()
@@ -69,6 +71,11 @@ class AuthServiceImpl : AuthService, KoinComponent {
         val token = bangumiOauthRepository.getTokenAndRemove(requestId)
             ?: throw NotFoundException("The bangumi code corresponding to the request ID has not arrived or is expired")
         return token
+    }
+
+    override suspend fun refreshBangumiToken(refreshToken: String): AnonymousBangumiUserToken {
+        return bangumiLoginHelper.getToken(refreshToken) ?:
+            throw UnauthorizedException("Invalid bangumi refresh token")
     }
 
     private suspend fun registerAndGetId(user: BangumiUser): String {

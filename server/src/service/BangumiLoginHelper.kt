@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import me.him188.ani.danmaku.protocol.AnonymousBangumiUserToken
 import me.him188.ani.danmaku.protocol.BangumiUserToken
 import me.him188.ani.danmaku.server.ServerConfig
 import org.koin.core.component.KoinComponent
@@ -22,6 +23,7 @@ import org.slf4j.Logger
 interface BangumiLoginHelper {
     suspend fun login(bangumiToken: String): BangumiUser?
     suspend fun getToken(code: String, requestId: String): BangumiUserToken?
+    suspend fun getToken(refreshToken: String): AnonymousBangumiUserToken?
 }
 
 class TestBangumiLoginHelperImpl : BangumiLoginHelper {
@@ -39,6 +41,14 @@ class TestBangumiLoginHelperImpl : BangumiLoginHelper {
             "test_code_1" -> BangumiUserToken(1, 3600, "test_token_1", "test_refresh_token_1")
             "test_code_2" -> BangumiUserToken(2, 3600, "test_token_2", "test_refresh_token_2")
             "test_code_3" -> BangumiUserToken(3, 3600, "test_token_3", "test_refresh_token_3")
+            else -> null
+        }
+    }
+
+    override suspend fun getToken(refreshToken: String): AnonymousBangumiUserToken? {
+        return when (refreshToken) {
+            "test_refresh_token_1" -> AnonymousBangumiUserToken("test_token_1", "test_refresh_token_1", 3600)
+            "test_refresh_token_2" -> AnonymousBangumiUserToken("test_token_2", "test_refresh_token_2", 3600)
             else -> null
         }
     }
@@ -92,12 +102,15 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
                 )
             }
             if (!response.status.isSuccess()) {
-                log.error("Failed to get Bangumi token with code $code due to: Bangumi responded with ${response.status}: ${response.bodyAsText()}")
+                log.error(
+                    "Failed to get Bangumi token with code $code due to: " +
+                            "Bangumi responded with ${response.status}: ${response.bodyAsText()}"
+                )
                 return null
             }
             val tokenResponse = response.body<OauthTokenResponse>()
             return BangumiUserToken(
-                userId = tokenResponse.userId,
+                userId = tokenResponse.userId ?: throw IllegalStateException("Bangumi did not return user ID"),
                 expiresIn = tokenResponse.expiresIn,
                 accessToken = tokenResponse.accessToken,
                 refreshToken = tokenResponse.refreshToken,
@@ -106,6 +119,40 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
             throw e
         } catch (e: Exception) {
             log.error("Failed to get Bangumi token with code $code due to:", e)
+            return null
+        }
+    }
+
+    override suspend fun getToken(refreshToken: String): AnonymousBangumiUserToken? {
+        try {
+            val response = httpClient.post(bangumiOauthTokenUrl) {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    buildJsonObject {
+                        put("grant_type", "refresh_token")
+                        put("client_id", serverConfig.bangumi.clientId)
+                        put("client_secret", serverConfig.bangumi.clientSecret)
+                        put("refresh_token", refreshToken)
+                    }
+                )
+            }
+            if (!response.status.isSuccess()) {
+                log.error(
+                    "Failed to get Bangumi token with refresh token $refreshToken due to: " +
+                            "Bangumi responded with ${response.status}: ${response.bodyAsText()}"
+                )
+                return null
+            }
+            val tokenResponse = response.body<OauthTokenResponse>()
+            return AnonymousBangumiUserToken(
+                expiresIn = tokenResponse.expiresIn,
+                accessToken = tokenResponse.accessToken,
+                refreshToken = tokenResponse.refreshToken,
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log.error("Failed to get Bangumi token with refresh token $refreshToken due to:", e)
             return null
         }
     }
@@ -134,7 +181,7 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
         @SerialName("token_type") val tokenType: String,
         val scope: String?,
         @SerialName("refresh_token") val refreshToken: String,
-        @SerialName("user_id") val userId: Int,
+        @SerialName("user_id") val userId: Int?,
     )
 }
 

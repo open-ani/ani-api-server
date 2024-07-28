@@ -18,7 +18,9 @@ class BadRequestException(
     override val statusMessage: String = "Bad Request"
 }
 
-class UnauthorizedException : HttpRequestException() {
+class UnauthorizedException(
+    override val message: String,
+) : HttpRequestException() {
     override val statusCode: Int = 401
     override val statusMessage: String = "Unauthorized"
 }

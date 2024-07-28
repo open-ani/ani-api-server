@@ -8,9 +8,7 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import me.him188.ani.danmaku.protocol.BangumiLoginRequest
-import me.him188.ani.danmaku.protocol.BangumiLoginResponse
-import me.him188.ani.danmaku.protocol.BangumiUserToken
+import me.him188.ani.danmaku.protocol.*
 import me.him188.ani.danmaku.server.service.AuthService
 import me.him188.ani.danmaku.server.service.JwtTokenManager
 import me.him188.ani.danmaku.server.util.exception.BadRequestException
@@ -185,6 +183,41 @@ fun Route.authRouting() {
                 val requestId = call.parameters["requestId"] ?: throw BadRequestException("Missing parameter requestId")
                 val bangumiToken = service.getBangumiToken(requestId)
                 call.respond(bangumiToken)
+            }
+
+            post("/refresh", {
+                summary = "刷新 Bangumi token"
+                description = "刷新 Bangumi token。"
+                request {
+                    body<RefreshBangumiTokenRequest> {
+                        description = "上次登录时提供的刷新 token"
+                        example("example") {
+                            value = RefreshBangumiTokenRequest("6f91bc748d8afe18e9dfe014a3da6340efcbaee2")
+                        }
+                    }
+                }
+                response {
+                    HttpStatusCode.OK to {
+                        description = "成功刷新 Bangumi token"
+                        body<AnonymousBangumiUserToken> {
+                            description = "Bangumi token 信息，包含新的访问 token、刷新 token 以及 token 有效时间"
+                            example("example") {
+                                value = AnonymousBangumiUserToken(
+                                    accessToken = "35a2b4f1b068ccf490b2c1768b8c910723303741",
+                                    refreshToken = "dfe040e6f91bc748d8afe18e9fcbaee214a3da63",
+                                    expiresIn = 604800,
+                                )
+                            }
+                        }
+                    }
+                    HttpStatusCode.Unauthorized to {
+                        description = "刷新 token 无效"
+                    }
+                }
+            }) {
+                val refreshToken = call.receive<RefreshBangumiTokenRequest>().refreshToken
+                val newToken = service.refreshBangumiToken(refreshToken)
+                call.respond(newToken)
             }
         }
     }

@@ -39,3 +39,15 @@ data class BangumiUserToken(
     val accessToken: String,
     val refreshToken: String,
 )
+
+@Serializable
+data class RefreshBangumiTokenRequest(
+    val refreshToken: String,
+)
+
+@Serializable
+data class AnonymousBangumiUserToken(
+    val accessToken: String,
+    val refreshToken: String,
+    val expiresIn: Long,  // in seconds
+)
