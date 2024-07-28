@@ -20,18 +20,18 @@ import me.him188.ani.danmaku.server.ktor.routing.userRouting
 
 internal fun Application.configureRouting() {
     routing {
-        get("/status") {
-            call.respondText("Server is running")
-        }
-
-        // Static resources
-        get("/favicon.ico") {
-            call.respondRedirect("/static/favicon.ico")
-        }
-
         route({
             hidden = true
         }) {
+            get("/status") {
+                call.respondText("Server is running")
+            }
+
+            // Static resources
+            get("/favicon.ico") {
+                call.respondRedirect("/static/favicon.ico")
+            }
+
             staticResources("/static", "static", index = null) {
                 preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI)
                 enableAutoHeadResponse()
@@ -40,6 +40,7 @@ internal fun Application.configureRouting() {
                         url.path.contains("/static/immutable") -> {
                             listOf(CacheControl.MaxAge(maxAgeSeconds = 31536000)) // Immutable
                         }
+
                         else -> {
                             listOf(CacheControl.MaxAge(maxAgeSeconds = 64000))
                         }
@@ -49,12 +50,8 @@ internal fun Application.configureRouting() {
         }
 
         route("/v1") {
-            route({
-                hidden = true
-            }) {
-                danmakuRouting()
-                userRouting()
-            }
+            danmakuRouting()
+            userRouting()
             updatesRouting()
             authRouting()
         }

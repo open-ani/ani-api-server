@@ -1,5 +1,7 @@
 package me.him188.ani.danmaku.server.ktor.routing
 
+import io.github.smiley4.ktorswaggerui.dsl.routing.get
+import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.bkbn.kompendium.core.metadata.GetInfo
 import io.bkbn.kompendium.core.plugin.NotarizedRoute
 import io.ktor.http.HttpStatusCode
@@ -18,49 +20,44 @@ import org.koin.ktor.ext.inject
 fun Route.userRouting() {
     val service: UserService by inject()
 
-    route("/me") {
+    route("/me", {
+        tags("User")
+    }) {
         authenticate("auth-jwt") {
-            get {
+            get({
+                summary = "查看当前用户信息"
+                description = "查看当前携带的 token 对应用户的信息，包含其 Ani ID，Bangumi 昵称以及 Bangumi 头像 URL。"
+                response {
+                    HttpStatusCode.OK to {
+                        description = "成功获取用户信息"
+                        body<AniUser> {
+                            description = "用户信息"
+                            example("example") {
+                                value = AniUser(
+                                    id = "762e10b5-37c2-4a2b-a39b-b3033a5979f8",
+                                    nickname = "Him188",
+                                    smallAvatar = "https://example.com/avatarSmall.jpg",
+                                    mediumAvatar = "https://example.com/avatarMedium.jpg",
+                                    largeAvatar = "https://example.com/avatarLarge.jpg",
+                                    registerTime = 1714404248957,
+                                    lastLoginTime = 1714404248957,
+                                    clientVersion = "3.0.0-beta22",
+                                    clientPlatforms = setOf("macos-aarch64", "android-aarch64", "windows-x86_64"),
+                                )
+                            }
+                        }
+                    }
+                    HttpStatusCode.Unauthorized to {
+                        description = "未登录或用户 token 无效"
+                    }
+                    HttpStatusCode.NotFound to {
+                        description = "用户 token 对应的用户不存在"
+                    }
+                }
+            }) {
                 val userId = getUserIdOrRespond() ?: return@get
                 val user = service.getUser(userId)
                 call.respond(user)
-            }
-        }
-    }
-}
-
-private fun Route.documentation() {
-    install(NotarizedRoute()) {
-        get = GetInfo.builder {
-            summary("查看当前用户信息")
-            description("查看当前携带的token对应用户的信息，包含其Ani ID，Bangumi昵称以及Bangumi头像URL。")
-            response {
-                responseCode(HttpStatusCode.OK)
-                responseType<AniUser>()
-                description("用户信息")
-                examples(
-                    "" to AniUser(
-                        id = "762e10b5-37c2-4a2b-a39b-b3033a5979f8",
-                        nickname = "Him188",
-                        smallAvatar = "https://example.com/avatarSmall.jpg",
-                        mediumAvatar = "https://example.com/avatarMedium.jpg",
-                        largeAvatar = "https://example.com/avatarLarge.jpg",
-                        registerTime = 1714404248957,
-                        lastLoginTime = 1714404248957,
-                        clientVersion = "3.0.0-beta22",
-                        clientPlatforms = setOf("macos-aarch64", "android-aarch64", "windows-x86_64"),
-                    ),
-                )
-            }
-            canRespond {
-                responseCode(HttpStatusCode.Unauthorized)
-                responseType<Any>()
-                description("未登录或用户token无效")
-            }
-            canRespond {
-                responseCode(HttpStatusCode.NotFound)
-                responseType<Any>()
-                description("用户token对应的用户不存在")
             }
         }
     }
