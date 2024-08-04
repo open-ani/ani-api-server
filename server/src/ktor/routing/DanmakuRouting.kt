@@ -33,6 +33,7 @@ fun Route.danmakuRouting() {
             post({
                 summary = "发送弹幕"
                 description = "发送一条弹幕至某一剧集，可指定弹幕时间、内容、颜色和内容。需要用户登录。"
+                operationId = "postDanmaku"
                 request {
                     pathParameter<String>("episodeId") {
                         description = "剧集 ID"
@@ -78,6 +79,7 @@ fun Route.danmakuRouting() {
         get({
             summary = "获取弹幕"
             description = "获取某一剧集内的弹幕，可指定某一时间范围及最大获取数量。"
+            operationId = "getDanmaku"
             request {
                 pathParameter<String>("episodeId") {
                     description = "剧集 ID"

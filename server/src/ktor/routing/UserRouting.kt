@@ -27,6 +27,7 @@ fun Route.userRouting() {
             get({
                 summary = "查看当前用户信息"
                 description = "查看当前携带的 token 对应用户的信息，包含其 Ani ID，Bangumi 昵称以及 Bangumi 头像 URL。"
+                operationId = "getUser"
                 response {
                     HttpStatusCode.OK to {
                         description = "成功获取用户信息"

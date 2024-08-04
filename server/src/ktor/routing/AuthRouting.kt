@@ -28,6 +28,7 @@ fun Route.authRouting() {
         post({
             summary = "使用 Bangumi token 登录"
             description = "使用 Bangumi token 登录并获取用户会话 token。"
+            operationId = "bangumiLogin"
             request {
                 body<BangumiLoginRequest> {
                     description =
@@ -88,6 +89,7 @@ fun Route.authRouting() {
             get({
                 summary = "获取 Bangumi OAuth 授权链接"
                 description = "获取 Bangumi OAuth 授权链接，用于获取 Bangumi token。"
+                operationId = "getBangumiOauthUrl"
                 request {
                     parameters {
                         queryParameter<String>("requestId") {
@@ -112,6 +114,7 @@ fun Route.authRouting() {
             get("/callback", {
                 summary = "Bangumi OAuth 回调"
                 description = "用于 Bangumi OAuth 授权回调，用户不应自行调用该接口。"
+                operationId = "bangumiOauthCallback"
                 request {
                     parameters {
                         queryParameter<String>("code") {
@@ -150,6 +153,7 @@ fun Route.authRouting() {
             get("/token", {
                 summary = "获取 Bangumi token"
                 description = "获取 Bangumi token，用于登录。"
+                operationId = "getBangumiToken"
                 request {
                     parameters {
                         queryParameter<String>("requestId") {
@@ -188,6 +192,7 @@ fun Route.authRouting() {
             post("/refresh", {
                 summary = "刷新 Bangumi token"
                 description = "刷新 Bangumi token。"
+                operationId = "refreshBangumiToken"
                 request {
                     body<RefreshBangumiTokenRequest> {
                         description = "上次登录时提供的刷新 token"

@@ -28,6 +28,7 @@ fun Route.updatesRouting() {
         get("/incremental", {
             summary = "获取可更新的版本号列表"
             description = "返回所有大于当前版本的更新版本号。"
+            operationId = "getUpdates"
             commonRequestBlock()
             response {
                 HttpStatusCode.OK to {
@@ -53,6 +54,7 @@ fun Route.updatesRouting() {
         get("/incremental/details", {
             summary = "获取可更新的版本详情"
             description = "返回所有大于当前版本的更新版本的详细信息，包括版本号、下载地址、发布时间以及更新内容。"
+            operationId = "getDetailedUpdates"
             commonRequestBlock()
             response {
                 HttpStatusCode.OK to {
@@ -99,6 +101,7 @@ fun Route.updatesRouting() {
         get("/latest", {
             summary = "获取最新版本下载链接"
             description = "返回最新版本的下载链接及二维码及二维码，不包括版本更新信息。"
+            operationId = "getLatestVersion"
             request {
                 queryParameter<String>("releaseClass") {
                     description =
