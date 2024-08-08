@@ -16,6 +16,7 @@ import kotlinx.serialization.json.put
 import me.him188.ani.danmaku.protocol.AnonymousBangumiUserToken
 import me.him188.ani.danmaku.protocol.BangumiUserToken
 import me.him188.ani.danmaku.server.ServerConfig
+import me.him188.ani.danmaku.server.util.exception.UnauthorizedException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.slf4j.Logger
@@ -123,7 +124,7 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
         }
     }
 
-    override suspend fun getToken(refreshToken: String): AnonymousBangumiUserToken? {
+    override suspend fun getToken(refreshToken: String): AnonymousBangumiUserToken {
         try {
             val response = httpClient.post(bangumiOauthTokenUrl) {
                 contentType(ContentType.Application.Json)
@@ -137,11 +138,11 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
                 )
             }
             if (!response.status.isSuccess()) {
-                log.error(
+                val message =
                     "Failed to get Bangumi token with refresh token $refreshToken due to: " +
                             "Bangumi responded with ${response.status}: ${response.bodyAsText()}"
-                )
-                return null
+                log.error(message)
+                throw UnauthorizedException(message)
             }
             val tokenResponse = response.body<OauthTokenResponse>()
             return AnonymousBangumiUserToken(
@@ -152,8 +153,9 @@ class BangumiLoginHelperImpl : BangumiLoginHelper, KoinComponent {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            val message = "Failed to get Bangumi token with refresh token $refreshToken due to: ${e.message}"
             log.error("Failed to get Bangumi token with refresh token $refreshToken due to:", e)
-            return null
+            throw UnauthorizedException(message)
         }
     }
 

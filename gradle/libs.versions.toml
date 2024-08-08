@@ -31,6 +31,7 @@ room = "2.7.0-alpha03"
 sqlite = "2.5.0-alpha03"
 constraintlayout-compose = "0.4.0"
 ktor-swagger-ui = "3.2.0"
+swagger-core = "2.2.21"
 
 
 compose-material3 = "1.2.1"
@@ -219,3 +220,5 @@ aws-secretsmanager = { module = "software.amazon.awssdk:secretsmanager", version
 #htmlunit = { group = "net.sourceforge.htmlunit", name = "htmlunit", version = "2.70.0" }
 selenium-java = { group = "org.seleniumhq.selenium", name = "selenium-java", version = "4.21.0" }
 webdrivermanager = { group = "io.github.bonigarcia", name = "webdrivermanager", version = "5.8.0" }
+
+swagger-core = { module = "io.swagger.core.v3:swagger-core", version.ref = "swagger-core" }
