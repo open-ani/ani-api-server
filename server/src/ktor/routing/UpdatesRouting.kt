@@ -12,6 +12,7 @@ import io.ktor.util.pipeline.PipelineContext
 import me.him188.ani.danmaku.protocol.*
 import me.him188.ani.danmaku.server.service.ClientReleaseInfoManager
 import me.him188.ani.danmaku.server.service.ReleaseInfo
+import me.him188.ani.danmaku.server.util.DistributionSuffixParser
 import me.him188.ani.danmaku.server.util.exception.BadRequestException
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.exception.NotFoundException
@@ -20,6 +21,7 @@ import org.koin.ktor.ext.inject
 
 fun Route.updatesRouting() {
     val clientReleaseInfoManager by inject<ClientReleaseInfoManager>()
+    val distributionSuffixParser by inject<DistributionSuffixParser>()
 
     route("/updates", {
         tags("Updates")
@@ -79,20 +81,21 @@ fun Route.updatesRouting() {
                 ?: throw BadRequestException("Missing parameter clientArch")
             call.respond(
                 ReleaseUpdatesDetailedResponse(
-                    updates.mapNotNull {
+                    updates.mapNotNull { releaseInfo ->
                         val downloadUrls = try {
                             clientReleaseInfoManager.parseDownloadUrlsByPlatformArch(
-                                it.version,
-                                "$clientPlatform-$clientArch"
+                                releaseInfo.assetNames,
+                                releaseInfo.version,
+                                "$clientPlatform-$clientArch",
                             )
                         } catch (e: IllegalArgumentException) {
                             return@mapNotNull null
                         }
                         UpdateInfo(
-                            it.version.toString(),
+                            releaseInfo.version.toString(),
                             downloadUrls,
-                            it.publishTime,
-                            it.description,
+                            releaseInfo.publishTime,
+                            releaseInfo.description,
                         )
                     },
                 ),
@@ -131,7 +134,7 @@ fun Route.updatesRouting() {
             val latestVersionInfo = LatestVersionInfo(
                 latest.version.toString(),
                 latest.assetNames.filter { !it.endsWith("qrcode.png") }.associate { assetName ->
-                    getPlatformArchFromAssetName(assetName) to
+                    distributionSuffixParser.getPlatformArchFromAssetName(assetName) to
                             clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
                 },
                 latest.publishTime,
@@ -249,14 +252,3 @@ private val exampleLatestVersionInfo = LatestVersionInfo(
         "https://mirror.ghproxy.com/?q=https://github.com/open-ani/ani/releases/download/v3.5.0/ani-3.5.0.apk.github.qrcode.png"
     ),
 )
-
-private fun getPlatformArchFromAssetName(assetName: String): String {
-    val arch = assetName.substringAfterLast('-').substringBeforeLast('.')
-    return when {
-        assetName.endsWith(".apk") -> "android"
-        assetName.endsWith(".zip") -> "windows-$arch"
-        assetName.endsWith(".dmg") -> "macos-$arch"
-        assetName.endsWith(".deb") -> "debian-$arch"
-        else -> throw IllegalArgumentException("Unknown client arch from asset name: $assetName")
-    }
-}

@@ -19,10 +19,12 @@ import kotlinx.serialization.json.jsonPrimitive
 import me.him188.ani.danmaku.protocol.ReleaseClass
 import me.him188.ani.danmaku.server.ServerConfig
 import me.him188.ani.danmaku.server.ServerConfigBuilder
+import me.him188.ani.danmaku.server.util.DistributionSuffixParser
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.semver.SemVersion
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import java.time.ZonedDateTime
@@ -42,7 +44,12 @@ interface ClientReleaseInfoManager {
         releaseClass: ReleaseClass,
     ): List<ReleaseInfo>
 
-    fun parseDownloadUrlsByPlatformArch(clientVersion: SemVersion, clientPlatformArch: String): List<String>
+    fun parseDownloadUrlsByPlatformArch(
+        assetNames: Set<String>,
+        clientVersion: SemVersion,
+        clientPlatformArch: String
+    ): List<String>
+
     fun parseDownloadUrlsByAssetName(clientVersion: SemVersion, assetName: String): List<String>
 }
 
@@ -63,6 +70,8 @@ class ClientReleaseInfoManagerImpl(
     private val bufferMutex = Mutex()
     private val bufferExpired get() = System.currentTimeMillis() - lastRecordTime > bufferExpirationTime
 
+    private val distributionSuffixParser by inject<DistributionSuffixParser>()
+
     override suspend fun getLatestRelease(clientPlatformArch: String?, releaseClass: ReleaseClass): ReleaseInfo? {
         return getLatestReleaseInternal(getBuffer(), clientPlatformArch, releaseClass)
     }
@@ -81,13 +90,11 @@ class ClientReleaseInfoManagerImpl(
              * On the other hand, if client requires the newest [ReleaseClass.STABLE] version,
              * the target release version should only be [ReleaseClass.STABLE].
              */
-            info.version.parseClass().moreStableThan(releaseClass) && info.assetNames.any {
-                platformArch == null ||
-                        if (platformArch.startsWith("android")) {
-                            it.endsWith(".apk")
-                        } else {
-                            it.contains(platformArch)
-                        }
+            info.version.parseClass().moreStableThan(releaseClass) && info.assetNames.any { assetName ->
+                if (platformArch == null) return@any true
+                val assetPlatformArch = distributionSuffixParser.getPlatformArchFromAssetName(assetName)
+                assetPlatformArch == platformArch ||
+                        (assetPlatformArch == "android-universal" && platformArch.startsWith("android"))
             }
         }
     }
@@ -110,16 +117,16 @@ class ClientReleaseInfoManagerImpl(
         return buffer.dropWhile { it.version <= semVersion }.takeWhile { it.version <= latestRelease.version }
     }
 
-    override fun parseDownloadUrlsByPlatformArch(clientVersion: SemVersion, clientPlatformArch: String): List<String> {
+    override fun parseDownloadUrlsByPlatformArch(
+        assetNames: Set<String>,
+        clientVersion: SemVersion,
+        clientPlatformArch: String
+    ): List<String> {
         val platformArch = clientPlatformArch.lowercase()
-        val distributionSuffix = when {
-            platformArch.startsWith("debian") -> "-$platformArch.deb"
-            platformArch.startsWith("macos") -> "-$platformArch.dmg"
-            platformArch.startsWith("windows") -> "-$platformArch.zip"
-            platformArch.startsWith("android") -> ".apk"
-            else -> throw IllegalArgumentException("Unknown client arch: $platformArch")
+        val assetName = assetNames.first { candidateName ->
+            val candidatePlatformArch = distributionSuffixParser.getPlatformArchFromAssetName(candidateName)
+            platformArch == candidatePlatformArch || (candidatePlatformArch == "android-universal" && platformArch.startsWith("android"))
         }
-        val assetName = "ani-${clientVersion}${distributionSuffix}"
         return parseDownloadUrlsByAssetName(clientVersion, assetName)
     }
 
@@ -262,7 +269,11 @@ class TestClientReleaseInfoManager : ClientReleaseInfoManager {
         )
     }
 
-    override fun parseDownloadUrlsByPlatformArch(clientVersion: SemVersion, clientPlatformArch: String): List<String> {
+    override fun parseDownloadUrlsByPlatformArch(
+        assetNames: Set<String>,
+        clientVersion: SemVersion,
+        clientPlatformArch: String
+    ): List<String> {
         return listOf("testUrl/v${clientVersion}/$clientPlatformArch.zip")
     }
 

@@ -5,6 +5,8 @@ import kotlinx.coroutines.launch
 import me.him188.ani.danmaku.server.data.*
 import me.him188.ani.danmaku.server.data.mongodb.*
 import me.him188.ani.danmaku.server.service.*
+import me.him188.ani.danmaku.server.util.DistributionSuffixParser
+import me.him188.ani.danmaku.server.util.DistributionSuffixParserImpl
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import org.slf4j.Logger
@@ -29,6 +31,7 @@ fun getServerKoinModule(
             versionWhitelistRegex = listOf("[3-9].[0-9]{1,2}.[0-9]{1,2}-dev"),
         )
     }
+    single<DistributionSuffixParser> { DistributionSuffixParserImpl() }
 
     if (config.testing) {
         single<DanmakuRepository> { InMemoryDanmakuRepositoryImpl() }
