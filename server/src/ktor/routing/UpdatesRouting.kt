@@ -38,7 +38,7 @@ fun Route.updatesRouting() {
                     body<ReleaseUpdatesResponse> {
                         description = "更新版本号列表"
                         example("example") {
-                            value = ReleaseUpdatesResponse(listOf("3.0.0-rc01", "3.0.0-rc02", "3.0.0-rc03"))
+                            value = ReleaseUpdatesResponse(listOf("3.0.0-rc01", "3.0.0-rc02", "3s/incre0.0-rc03"))
                         }
                     }
                 }

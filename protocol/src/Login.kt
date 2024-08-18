@@ -22,7 +22,7 @@ data class BangumiLoginRequest(
             "linux", "debian", "ubuntu", "redhat",
         )
         val AllowedArchs = listOf(
-            "aarch64", "x86", "x86_64",
+            "aarch64", "x86", "x86_64", "arm64-v8a", "armeabi-v7a",
         )
     }
 }
