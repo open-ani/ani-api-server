@@ -133,9 +133,16 @@ fun Route.updatesRouting() {
                 ?: throw NotFoundException("No latest release found")
             val latestVersionInfo = LatestVersionInfo(
                 latest.version.toString(),
-                latest.assetNames.filter { !it.endsWith("qrcode.png") }.associate { assetName ->
-                    distributionSuffixParser.getPlatformArchFromAssetName(assetName) to
-                            clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
+                run {
+                    val urlMap = latest.assetNames.filter { !it.endsWith("qrcode.png") }.associate { assetName ->
+                        distributionSuffixParser.getPlatformArchFromAssetName(assetName) to
+                                clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
+                    }.toMutableMap()
+                    // For old api compatibility
+                    if (urlMap.containsKey("android-universal")) {
+                        urlMap["android"] = urlMap["android-universal"]!!
+                    }
+                    urlMap
                 },
                 latest.publishTime,
                 latest.assetNames.filter { it.endsWith("qrcode.png") }.map { assetName ->
