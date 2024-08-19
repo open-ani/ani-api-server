@@ -143,8 +143,8 @@ fun Route.updatesRouting() {
                         platformArch to clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
                     }.toMap().toMutableMap()
                     // For old api compatibility
-                    if (urlMap.containsKey("android-universal")) {
-                        urlMap["android"] = urlMap["android-universal"]!!
+                    if (urlMap.containsKey("android-arm64-v8a")) {
+                        urlMap["android"] = urlMap["android-arm64-v8a"]!!
                     }
                     urlMap
                 },
