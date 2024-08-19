@@ -134,10 +134,14 @@ fun Route.updatesRouting() {
             val latestVersionInfo = LatestVersionInfo(
                 latest.version.toString(),
                 run {
-                    val urlMap = latest.assetNames.filter { !it.endsWith("qrcode.png") }.associate { assetName ->
-                        distributionSuffixParser.getPlatformArchFromAssetName(assetName) to
-                                clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
-                    }.toMutableMap()
+                    val urlMap = latest.assetNames.filter { !it.endsWith("qrcode.png") }.mapNotNull { assetName ->
+                        val platformArch = try {
+                            distributionSuffixParser.getPlatformArchFromAssetName(assetName)
+                        } catch (e: IllegalArgumentException) {
+                            return@mapNotNull null
+                        }
+                        platformArch to clientReleaseInfoManager.parseDownloadUrlsByAssetName(latest.version, assetName)
+                    }.toMap().toMutableMap()
                     // For old api compatibility
                     if (urlMap.containsKey("android-universal")) {
                         urlMap["android"] = urlMap["android-universal"]!!
