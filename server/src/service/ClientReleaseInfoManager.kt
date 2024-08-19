@@ -90,11 +90,9 @@ class ClientReleaseInfoManagerImpl(
              * On the other hand, if client requires the newest [ReleaseClass.STABLE] version,
              * the target release version should only be [ReleaseClass.STABLE].
              */
-            info.version.parseClass().moreStableThan(releaseClass) && info.assetNames.any { assetName ->
-                if (platformArch == null) return@any true
-                val assetPlatformArch = distributionSuffixParser.getPlatformArchFromAssetName(assetName)
-                assetPlatformArch == platformArch ||
-                        (assetPlatformArch == "android-universal" && platformArch.startsWith("android"))
+            info.version.parseClass().moreStableThan(releaseClass) && info.assetNames.let {
+                if (platformArch == null) return@let true
+                distributionSuffixParser.matchAssetNameByPlatformArch(it, platformArch) != null
             }
         }
     }
@@ -123,10 +121,8 @@ class ClientReleaseInfoManagerImpl(
         clientPlatformArch: String
     ): List<String> {
         val platformArch = clientPlatformArch.lowercase()
-        val assetName = assetNames.first { candidateName ->
-            val candidatePlatformArch = distributionSuffixParser.getPlatformArchFromAssetName(candidateName)
-            platformArch == candidatePlatformArch || (candidatePlatformArch == "android-universal" && platformArch.startsWith("android"))
-        }
+        val assetName = distributionSuffixParser.matchAssetNameByPlatformArch(assetNames, platformArch)
+            ?: throw IllegalArgumentException("No asset found for platform arch: $platformArch")
         return parseDownloadUrlsByAssetName(clientVersion, assetName)
     }
 
