@@ -21,7 +21,7 @@ class DistributionSuffixParserImpl : DistributionSuffixParser {
         return when {
             assetName.endsWith(".apk") -> {
                 if (version <= SemVersion.invoke("3.7.0")) "android-arm64-v8a"
-                else if (arch in setOf("arm64-v8a", "armeabi-v7a")) "android-$arch"
+                else if (arch in setOf("arm64-v8a", "armeabi-v7a", "x86_64")) "android-$arch"
                 else "android-universal"
             }
 
