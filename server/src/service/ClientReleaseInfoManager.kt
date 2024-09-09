@@ -1,34 +1,24 @@
 package me.him188.ani.danmaku.server.service
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import me.him188.ani.danmaku.protocol.ReleaseClass
 import me.him188.ani.danmaku.server.ServerConfig
-import me.him188.ani.danmaku.server.ServerConfigBuilder
 import me.him188.ani.danmaku.server.util.DistributionSuffixParser
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.semver.SemVersion
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
 import java.time.ZonedDateTime
-import java.util.Locale
+import java.util.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -47,7 +37,7 @@ interface ClientReleaseInfoManager {
     fun parseDownloadUrlsByPlatformArch(
         assetNames: Set<String>,
         clientVersion: SemVersion,
-        clientPlatformArch: String
+        clientPlatformArch: String,
     ): List<String>
 
     fun parseDownloadUrlsByAssetName(clientVersion: SemVersion, assetName: String): List<String>
@@ -79,7 +69,7 @@ class ClientReleaseInfoManagerImpl(
     private fun getLatestReleaseInternal(
         releaseInfoList: List<ReleaseInfo>,
         clientPlatformArch: String?,
-        releaseClass: ReleaseClass
+        releaseClass: ReleaseClass,
     ): ReleaseInfo? {
         val platformArch = clientPlatformArch?.lowercase()
         return releaseInfoList.lastOrNull { info ->
@@ -100,7 +90,7 @@ class ClientReleaseInfoManagerImpl(
     override suspend fun getAllUpdateLogs(
         version: String,
         clientPlatformArch: String,
-        releaseClass: ReleaseClass
+        releaseClass: ReleaseClass,
     ): List<ReleaseInfo> {
         val semVersion = try {
             SemVersion.invoke(version)
@@ -118,7 +108,7 @@ class ClientReleaseInfoManagerImpl(
     override fun parseDownloadUrlsByPlatformArch(
         assetNames: Set<String>,
         clientVersion: SemVersion,
-        clientPlatformArch: String
+        clientPlatformArch: String,
     ): List<String> {
         val platformArch = clientPlatformArch.lowercase()
         val assetName = distributionSuffixParser.matchAssetNameByPlatformArch(assetNames, platformArch)
@@ -238,7 +228,7 @@ class TestClientReleaseInfoManager : ClientReleaseInfoManager {
     override suspend fun getAllUpdateLogs(
         version: String,
         clientPlatformArch: String,
-        releaseClass: ReleaseClass
+        releaseClass: ReleaseClass,
     ): List<ReleaseInfo> {
         return listOf(
             ReleaseInfo(
@@ -268,7 +258,7 @@ class TestClientReleaseInfoManager : ClientReleaseInfoManager {
     override fun parseDownloadUrlsByPlatformArch(
         assetNames: Set<String>,
         clientVersion: SemVersion,
-        clientPlatformArch: String
+        clientPlatformArch: String,
     ): List<String> {
         return listOf("testUrl/v${clientVersion}/$clientPlatformArch.zip")
     }

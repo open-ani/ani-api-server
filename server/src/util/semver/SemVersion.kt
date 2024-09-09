@@ -11,6 +11,8 @@
  * @author Karlatemp <karlatemp@vip.qq.com> <https://github.com/Karlatemp>
  */
 
+@file:Suppress("RedundantVisibilityModifier", "unused")
+
 package me.him188.ani.danmaku.server.util.semver
 
 import kotlinx.serialization.KSerializer
@@ -53,12 +55,12 @@ import kotlin.LazyThreadSafetyMode.PUBLICATION
  * @see Requirement 版本号要修
  * @see SemVersion.invoke 由字符串解析
  */
-@Serializable(with = SemVersion.SemVersionAsStringSerializer::class)
+@Serializable(with = SemVersionAsStringSerializer::class)
 public data class SemVersion
 /**
  * @see SemVersion.invoke 字符串解析
  */
-internal constructor(
+public constructor(
     /** 主版本号 */
     public val major: Int,
     /** 次版本号 */
@@ -84,7 +86,7 @@ internal constructor(
      * @see [parseRangeRequirement]
      */
     @Serializable(Requirement.RequirementAsStringSerializer::class)
-    public data class Requirement internal constructor(
+    public data class Requirement public constructor(
         /**
          * 规则的字符串表示方式
          *

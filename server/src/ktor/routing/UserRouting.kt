@@ -2,16 +2,11 @@ package me.him188.ani.danmaku.server.ktor.routing
 
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
-import io.bkbn.kompendium.core.metadata.GetInfo
-import io.bkbn.kompendium.core.plugin.NotarizedRoute
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.application.install
-import io.ktor.server.auth.authenticate
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import me.him188.ani.danmaku.protocol.AniUser
 import me.him188.ani.danmaku.server.service.UserService
 import me.him188.ani.danmaku.server.util.getUserIdOrRespond
