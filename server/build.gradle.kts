@@ -49,3 +49,9 @@ application {
 idea {
     module.excludeDirs.add(file("logs"))
 }
+
+kotlin {
+    jvmToolchain(17)
+    compilerOptions.freeCompilerArgs.add("-Xmulti-dollar-interpolation")
+    compilerOptions.freeCompilerArgs.add("-Xdont-warn-on-error-suppression")
+}
