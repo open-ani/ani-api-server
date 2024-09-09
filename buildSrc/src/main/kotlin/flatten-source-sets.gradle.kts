@@ -1,5 +1,3 @@
-import com.android.build.api.dsl.CommonExtension
-
 /**
  * 扁平化源集目录结构, 减少文件树层级 by 2
  *
@@ -65,12 +63,6 @@ fun Project.configureFlattenMppSourceSets() {
             val targetName = name
             setForTarget(targetName)
         }
-    }
-
-    extensions.findByType(CommonExtension::class)?.run {
-        this.sourceSets["main"].res.srcDirs(projectDir.resolve("androidRes"))
-        this.sourceSets["main"].assets.srcDirs(projectDir.resolve("androidAssets"))
-        this.sourceSets["main"].aidl.srcDirs(projectDir.resolve("androidAidl"))
     }
 }
 

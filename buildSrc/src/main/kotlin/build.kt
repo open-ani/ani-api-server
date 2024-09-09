@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
@@ -153,13 +152,6 @@ fun Project.configureJvmTarget() {
     extensions.findByType(JavaPluginExtension::class.java)?.run {
         sourceCompatibility = ver
         targetCompatibility = ver
-    }
-
-    extensions.findByType(CommonExtension::class)?.apply {
-        compileOptions {
-            sourceCompatibility = ver
-            targetCompatibility = ver
-        }
     }
 }
 

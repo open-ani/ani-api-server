@@ -49,15 +49,6 @@ dependencies {
         exclude("org.jetbrains.kotlin", "kotlin-reflect")
     }
 
-    api(libs.android.gradle.plugin)
     api(libs.atomicfu.gradle.plugin)
-    api(libs.android.application.gradle.plugin)
-    api(libs.android.library.gradle.plugin)
-    api(libs.compose.multiplatfrom.gradle.plugin)
     implementation(kotlin("script-runtime"))
-
-//    api(libs.aws.s3)
-//    api(libs.aws.s3control)
-//    api(libs.aws.sts)
-//    api(libs.aws.secretsmanager)
 }
