@@ -1,10 +1,10 @@
 [versions]
-kotlin = "2.0.0"
+kotlin = "2.0.20"
 # kotlinx
 kotlinx-coroutines = "1.8.1"
-kotlinx-serialization = "1.6.3"
-kotlinx-datetime = "0.6.0"
-atomicfu = "0.23.2"
+kotlinx-serialization = "1.7.1"
+kotlinx-datetime = "0.6.1"
+atomicfu = "0.25.0"
 #
 ktor = "2.3.10"
 koin = "3.5.3"
@@ -15,7 +15,7 @@ logback = "1.4.14"
 aws = "2.25.49"
 ksp = "2.0.0-1.0.21"
 room = "2.7.0-alpha03"
-ktor-swagger-ui = "3.2.0"
+ktor-swagger-ui = "3.3.1"
 swagger-core = "2.2.21"
 
 
