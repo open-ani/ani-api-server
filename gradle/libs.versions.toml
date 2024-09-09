@@ -11,6 +11,7 @@ koin = "3.5.3"
 slf4j = "2.0.12"
 jsoup = "1.15.4"
 mongodb-driver-kotlin-coroutine = "4.10.1"
+mongodb-bson-kotlinx = "5.1.0"
 logback = "1.4.14"
 aws = "2.25.49"
 ksp = "2.0.0-1.0.21"
@@ -68,6 +69,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 
 # MongoDB
 mongodb-driver-kotlin-coroutine = { module = "org.mongodb:mongodb-driver-kotlin-coroutine", version.ref = "mongodb-driver-kotlin-coroutine" }
+mongodb-bson-kotlinx = { module = "org.mongodb:bson-kotlinx", version.ref = "mongodb-bson-kotlinx" }
 
 #// https://mvnrepository.com/artifact/software.amazon.awssdk/s3
 #testImplementation("software.amazon.awssdk:s3:2.25.49")

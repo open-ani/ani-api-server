@@ -31,8 +31,10 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.swagger)
     implementation(libs.ktor.swagger.ui)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.mongodb.driver.kotlin.coroutine)
     implementation(projects.protocol)
+    implementation(libs.mongodb.bson.kotlinx)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(projects.utils.coroutines)
