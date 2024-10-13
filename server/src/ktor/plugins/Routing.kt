@@ -1,6 +1,5 @@
 package me.him188.ani.danmaku.server.ktor.plugins
 
-import com.mongodb.annotations.Immutable
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
 import io.ktor.http.CacheControl
 import io.ktor.server.application.Application
@@ -14,6 +13,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import me.him188.ani.danmaku.server.ktor.routing.authRouting
 import me.him188.ani.danmaku.server.ktor.routing.danmakuRouting
+import me.him188.ani.danmaku.server.ktor.routing.trending
 import me.him188.ani.danmaku.server.ktor.routing.updatesRouting
 import me.him188.ani.danmaku.server.ktor.routing.userRouting
 
@@ -54,6 +54,7 @@ internal fun Application.configureRouting() {
             userRouting()
             updatesRouting()
             authRouting()
+            trending()
         }
     }
 }
