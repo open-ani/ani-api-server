@@ -9,7 +9,7 @@ atomicfu = "0.25.0"
 ktor = "2.3.10"
 koin = "3.5.3"
 slf4j = "2.0.12"
-jsoup = "1.15.4"
+jsoup = "1.18.1"
 mongodb-driver-kotlin-coroutine = "5.1.0"
 mongodb-bson-kotlinx = "5.1.0"
 logback = "1.4.14"
@@ -58,6 +58,8 @@ ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", versio
 ktor-server-status = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 ktor-server-swagger = { module = "io.ktor:ktor-server-swagger", version.ref = "ktor" }
 ktor-swagger-ui = { module = "io.github.smiley4:ktor-swagger-ui", version.ref = "ktor-swagger-ui" }
+
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
 # Koin
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }

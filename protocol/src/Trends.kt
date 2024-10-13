@@ -3,7 +3,7 @@ package me.him188.ani.danmaku.protocol
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Trending(
+data class Trends(
     val trendingSubjects: List<TrendingSubject>,
 )
 

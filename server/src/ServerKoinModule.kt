@@ -16,6 +16,7 @@ import me.him188.ani.danmaku.server.service.AuthService
 import me.him188.ani.danmaku.server.service.AuthServiceImpl
 import me.him188.ani.danmaku.server.service.BangumiLoginHelper
 import me.him188.ani.danmaku.server.service.BangumiLoginHelperImpl
+import me.him188.ani.danmaku.server.service.BangumiTrendsService
 import me.him188.ani.danmaku.server.service.ClientReleaseInfoManager
 import me.him188.ani.danmaku.server.service.ClientReleaseInfoManagerImpl
 import me.him188.ani.danmaku.server.service.ClientVersionVerifier
@@ -79,5 +80,6 @@ fun getServerKoinModule(
                 bufferExpirationTime = 10.minutes.inWholeMilliseconds,
             )
         }
+        single<BangumiTrendsService> { BangumiTrendsService() }
     }
 }

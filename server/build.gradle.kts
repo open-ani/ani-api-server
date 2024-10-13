@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.mongodb.driver.kotlin.coroutine)
     implementation(projects.protocol)
+    implementation(libs.jsoup)
     implementation(libs.mongodb.bson.kotlinx)
 
     testImplementation(libs.kotlinx.coroutines.test)

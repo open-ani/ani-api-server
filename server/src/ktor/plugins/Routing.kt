@@ -13,7 +13,7 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import me.him188.ani.danmaku.server.ktor.routing.authRouting
 import me.him188.ani.danmaku.server.ktor.routing.danmakuRouting
-import me.him188.ani.danmaku.server.ktor.routing.trending
+import me.him188.ani.danmaku.server.ktor.routing.trends
 import me.him188.ani.danmaku.server.ktor.routing.updatesRouting
 import me.him188.ani.danmaku.server.ktor.routing.userRouting
 
@@ -54,7 +54,7 @@ internal fun Application.configureRouting() {
             userRouting()
             updatesRouting()
             authRouting()
-            trending()
+            trends()
         }
     }
 }
