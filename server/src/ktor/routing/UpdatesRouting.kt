@@ -3,13 +3,17 @@ package me.him188.ani.danmaku.server.ktor.routing
 import io.github.smiley4.ktorswaggerui.dsl.routes.OpenApiRoute
 import io.github.smiley4.ktorswaggerui.dsl.routing.get
 import io.github.smiley4.ktorswaggerui.dsl.routing.route
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.response.respond
-import io.ktor.server.routing.*
+import io.ktor.server.routing.Route
 import io.ktor.util.pipeline.PipelineContext
-import me.him188.ani.danmaku.protocol.*
+import me.him188.ani.danmaku.protocol.LatestVersionInfo
+import me.him188.ani.danmaku.protocol.ReleaseClass
+import me.him188.ani.danmaku.protocol.ReleaseUpdatesDetailedResponse
+import me.him188.ani.danmaku.protocol.ReleaseUpdatesResponse
+import me.him188.ani.danmaku.protocol.UpdateInfo
 import me.him188.ani.danmaku.server.service.ClientReleaseInfoManager
 import me.him188.ani.danmaku.server.service.ReleaseInfo
 import me.him188.ani.danmaku.server.util.DistributionSuffixParser
@@ -18,6 +22,16 @@ import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.exception.NotFoundException
 import me.him188.ani.danmaku.server.util.exception.fromException
 import org.koin.ktor.ext.inject
+import kotlin.collections.List
+import kotlin.collections.filter
+import kotlin.collections.flatten
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
+import kotlin.collections.mapOf
+import kotlin.collections.set
+import kotlin.collections.toMap
+import kotlin.collections.toMutableMap
 
 fun Route.updatesRouting() {
     val clientReleaseInfoManager by inject<ClientReleaseInfoManager>()
@@ -27,29 +41,32 @@ fun Route.updatesRouting() {
         tags("Updates")
         hidden = false
     }) {
-        get("/incremental", {
-            summary = "获取可更新的版本号列表"
-            description = "返回所有大于当前版本的更新版本号。"
-            operationId = "getUpdates"
-            commonRequestBlock()
-            response {
-                HttpStatusCode.OK to {
-                    description = "成功获取内容"
-                    body<ReleaseUpdatesResponse> {
-                        description = "更新版本号列表"
-                        example("example") {
-                            value = ReleaseUpdatesResponse(listOf("3.0.0-rc01", "3.0.0-rc02", "3s/incre0.0-rc03"))
+        get(
+            "/incremental",
+            {
+                summary = "获取可更新的版本号列表"
+                description = "返回所有大于当前版本的更新版本号。"
+                operationId = "getUpdates"
+                commonRequestBlock()
+                response {
+                    HttpStatusCode.OK to {
+                        description = "成功获取内容"
+                        body<ReleaseUpdatesResponse> {
+                            description = "更新版本号列表"
+                            example("example") {
+                                value = ReleaseUpdatesResponse(listOf("3.0.0-rc01", "3.0.0-rc02", "3.0.0-rc03"))
+                            }
                         }
                     }
+                    HttpStatusCode.BadRequest to {
+                        description = "请求参数错误"
+                    }
+                    HttpStatusCode.fromException(InvalidClientVersionException()) to {
+                        description = "不合法的客户端版本号"
+                    }
                 }
-                HttpStatusCode.BadRequest to {
-                    description = "请求参数错误"
-                }
-                HttpStatusCode.fromException(InvalidClientVersionException()) to {
-                    description = "不合法的客户端版本号"
-                }
-            }
-        }) {
+            },
+        ) {
             val updates = updateInfos(clientReleaseInfoManager)
             call.respond(ReleaseUpdatesResponse(updates.map { it.version.toString() }))
         }
