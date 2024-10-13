@@ -41,7 +41,7 @@ fun Route.trending() {
                             description = "热门排行数据"
                             example("example") {
                                 value = Trending(
-                                    trendingSubjectIds = TRENDING_SUBJECTS,
+                                    trendingSubjects = TRENDING_SUBJECTS,
                                 )
                             }
                         }
@@ -52,7 +52,7 @@ fun Route.trending() {
             call.respond(
                 HttpStatusCode.OK,
                 Trending(
-                    trendingSubjectIds = TRENDING_SUBJECTS,
+                    trendingSubjects = TRENDING_SUBJECTS,
                 ),
             )
         }

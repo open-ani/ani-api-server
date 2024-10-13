@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Trending(
-    val trendingSubjectIds: List<TrendingSubject>,
+    val trendingSubjects: List<TrendingSubject>,
 )
 
 @Serializable
