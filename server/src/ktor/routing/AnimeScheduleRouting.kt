@@ -60,8 +60,17 @@ fun Route.animeScheduleRouting() {
                 summary = "获取一个季度的新番时间表"
                 description = "获取一个季度的新番时间表"
                 operationId = "getAnimeSeason"
+                request {
+                    pathParameter<String>("seasonId") {
+                        description =
+                            "格式为 \"{年份}q{季度序号}\". 例如 \"2024q3\". 季度序号范围为 1..3 (包含), 分别对应春季, 夏季, 秋季, 冬季"
+                        example("example") {
+                            value = "2024q3"
+                        }
+                    }
+                }
                 response {
-                    HttpStatusCode.OK to {
+                    code(HttpStatusCode.OK) {
                         description = "获取成功"
                         body<AnimeSchedule> {
                             description = "该季度的新番时间表, 无排序"
@@ -90,6 +99,12 @@ fun Route.animeScheduleRouting() {
                                 )
                             }
                         }
+                    }
+                    code(HttpStatusCode.NotFound) {
+                        description = "未找到对应季度"
+                    }
+                    code(HttpStatusCode.BadRequest) {
+                        description = "seasonId 格式有误"
                     }
                 }
             },
