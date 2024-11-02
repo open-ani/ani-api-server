@@ -1,6 +1,6 @@
 package me.him188.ani.danmaku.protocol
 
-import kotlinx.datetime.Instant
+import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,15 +18,18 @@ data class OnAirAnimeInfo(
     val bangumiId: Int,
     val name: String,
     val aliases: List<String>,
-    val begin: Instant? = null, // "2024-07-06T13:00:00.000Z"
+    @field:Schema(type = "String", example = "2024-07-06T13:00:00.000Z")
+    val begin: String? = null, // "2024-07-06T13:00:00.000Z"
     val recurrence: AnimeRecurrence? = null, // "R/2024-07-06T13:00:00.000Z/P7D"
-    val end: Instant? = null, // "2024-09-14T14:00:00.000Z"
+    @field:Schema(type = "String")
+    val end: String? = null, // "2024-09-14T14:00:00.000Z"
     val mikanId: Int?,
 )
 
 @Serializable
 data class AnimeRecurrence(
-    val startTime: Instant,
+    @field:Schema(type = "String")
+    val startTime: String,
     val intervalMillis: Long,
 )
 

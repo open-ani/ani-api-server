@@ -9,8 +9,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import io.swagger.v3.oas.models.media.Schema
-import kotlinx.datetime.Instant
 
 internal fun Application.configureSwaggerUI() {
     install(SwaggerUI) {
@@ -30,16 +28,42 @@ internal fun Application.configureSwaggerUI() {
                 bearerFormat = "JWT"
             }
         }
-        schemas {
-            overwrite<Instant>(
-                Schema<String>().apply {
-                    name = "Iso8601 Instant"
-                    example = "2020-12-09T09:16:56.000124Z"
-                },
-            )
+        schemas { 
+            
         }
+//        schemas {
+//            generator = { type ->
+//                type
+//                    .processKotlinxSerialization {
+//                        customProcessor<Instant> {
+//                            createDefaultPrimitiveTypeData<Instant>(
+//                                mutableMapOf(
+//                                    "format" to "Iso8601 Instant",
+//                                    "type" to "string",
+//                                ),
+//                            )
+//                        }
+//                    }
+//                    .connectSubTypes()
+//                    .generateSwaggerSchema()
+//                    .withTitle(TitleType.SIMPLE)
+//                    .handleCoreAnnotations()
+//                    .handleSwaggerAnnotations()
+//                    .customizeTypes { typeData, typeSchema ->
+//                        typeData.annotations.find { it.name == "type_format_annotation" }?.also { annotation ->
+//                            typeSchema.format = annotation.values["format"]?.toString()
+//                            typeSchema.type = annotation.values["type"]?.toString()
+//                        }
+//                    }
+//                    .handleSchemaAnnotations()
+//                    .compileReferencingRoot()
+//            }
+//        }
+//        schemas {
+////            overwrite<kotlinx.datetime.Instant>(typeOf<String>())
+////            schema("kotlinx.datetime.Instant", typeOf<String>())
+//        }
     }
-
     routing {
         route("openapi.json") {
             openApiSpec()
@@ -49,3 +73,19 @@ internal fun Application.configureSwaggerUI() {
         }
     }
 }
+//
+//private inline fun <reified T> createDefaultPrimitiveTypeData(values: MutableMap<String, Any?>): PrimitiveTypeData {
+//    return PrimitiveTypeData(
+//        id = TypeId.build(T::class.qualifiedName!!),
+//        simpleName = T::class.simpleName!!,
+//        qualifiedName = T::class.qualifiedName!!,
+//        annotations = mutableListOf(
+//            AnnotationData(
+//                name = "date",
+//                values = values,
+//                annotation = null,
+//            ),
+//        ),
+//    )
+//}
+//

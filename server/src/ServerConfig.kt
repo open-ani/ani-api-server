@@ -133,7 +133,7 @@ class ServerConfigBuilder private constructor(
     }
 
     private fun configFilePass() {
-        val config = ApplicationConfig(null)
+        val config = ApplicationConfig("application.conf")
         port = port ?: config.propertyOrNull("ktor.deployment.port")?.getString()?.toIntOrNull()
         host = host ?: config.propertyOrNull("ktor.deployment.host")?.getString()
         domain = domain ?: config.propertyOrNull("ktor.deployment.domain")?.getString()

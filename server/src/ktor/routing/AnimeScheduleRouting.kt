@@ -87,9 +87,9 @@ fun Route.animeScheduleRouting() {
                                                 "Love Live! Superstar!! 第三季",
                                                 "LoveLive! SuperStar!! 第三季",
                                             ),
-                                            begin = Instant.parse("2024-10-06T08:00:00Z"),
+                                            begin = Instant.parse("2024-10-06T08:00:00Z").toString(),
                                             recurrence = AnimeRecurrence(
-                                                startTime = Instant.parse("2024-10-06T08:00:00Z"),
+                                                startTime = Instant.parse("2024-10-06T08:00:00Z").toString(),
                                                 intervalMillis = 604800000,
                                             ),
                                             end = null,

@@ -105,9 +105,9 @@ object BgmlistAnimeScheduleFetcher : AnimeScheduleFetcher {
                     bangumiId = anime.sites.find { it.site == "bangumi" }?.id?.toIntOrNull() ?: return@mapNotNull null,
                     name = anime.title.takeIf { it.isNotEmpty() } ?: return@mapNotNull null,
                     aliases = anime.titleTranslate.values.flatten(),
-                    begin = parseToInstant(anime.begin),
+                    begin = parseToInstant(anime.begin)?.toString(),
                     recurrence = parseRecurrence(anime.broadcast),
-                    end = parseToInstant(anime.end),
+                    end = parseToInstant(anime.end)?.toString(),
                     mikanId = anime.sites.find { it.site == "mikan" }?.id?.toIntOrNull(),
                 )
             },
@@ -117,7 +117,7 @@ object BgmlistAnimeScheduleFetcher : AnimeScheduleFetcher {
     private fun parseToInstant(value: String): Instant? {
         return try {
             Instant.parse(value)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -128,7 +128,7 @@ object BgmlistAnimeScheduleFetcher : AnimeScheduleFetcher {
         if (parts.size != 3) return null
 
         return AnimeRecurrence(
-            startTime = Instant.parse(parts[1]),
+            startTime = Instant.parse(parts[1]).toString(),
             intervalMillis = Duration.parse(parts[2]).inWholeMilliseconds,
         )
     }
