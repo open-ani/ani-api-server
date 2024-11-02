@@ -12,6 +12,7 @@ import me.him188.ani.danmaku.server.data.mongodb.MongoCollectionProvider
 import me.him188.ani.danmaku.server.data.mongodb.MongoCollectionProviderImpl
 import me.him188.ani.danmaku.server.data.mongodb.MongoDanmakuRepositoryImpl
 import me.him188.ani.danmaku.server.service.AniClientVersionVerifierImpl
+import me.him188.ani.danmaku.server.service.AnimeScheduleService
 import me.him188.ani.danmaku.server.service.AuthService
 import me.him188.ani.danmaku.server.service.AuthServiceImpl
 import me.him188.ani.danmaku.server.service.BangumiLoginHelper
@@ -81,5 +82,6 @@ fun getServerKoinModule(
             )
         }
         single<BangumiTrendsService> { BangumiTrendsService() }
+        single<AnimeScheduleService> { AnimeScheduleService() }
     }
 }

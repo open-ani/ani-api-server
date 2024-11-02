@@ -11,6 +11,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import me.him188.ani.danmaku.server.ktor.routing.animeScheduleRouting
 import me.him188.ani.danmaku.server.ktor.routing.authRouting
 import me.him188.ani.danmaku.server.ktor.routing.danmakuRouting
 import me.him188.ani.danmaku.server.ktor.routing.trends
@@ -55,6 +56,7 @@ internal fun Application.configureRouting() {
             updatesRouting()
             authRouting()
             trends()
+            animeScheduleRouting()
         }
     }
 }
