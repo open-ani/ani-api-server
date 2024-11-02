@@ -31,6 +31,8 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.swagger)
     implementation(libs.ktor.swagger.ui)
+//    implementation("io.swagger:swagger-annotations:2.2.21")
+//    implementation("io.swagger:swagger-models:2.2.21")
     implementation(libs.kotlinx.datetime)
     implementation(libs.mongodb.driver.kotlin.coroutine)
     implementation(projects.protocol)
