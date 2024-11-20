@@ -209,7 +209,5 @@ suspend fun main() {
 
 @Serializable
 private data class RawBangumiData(
-    val items: List<
-            BangumiDataAnimeBeginOnly,
-            >
+    val items: List<BangumiDataAnimeBeginOnly>
 )
