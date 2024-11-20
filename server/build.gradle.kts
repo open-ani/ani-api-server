@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.protocol)
     implementation(libs.jsoup)
     implementation(libs.mongodb.bson.kotlinx)
+    implementation("androidx.collection:collection:1.4.5")
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(projects.utils.coroutines)

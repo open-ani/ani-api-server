@@ -12,8 +12,10 @@ import me.him188.ani.danmaku.protocol.AnimeSchedule
 import me.him188.ani.danmaku.protocol.AnimeSeason
 import me.him188.ani.danmaku.protocol.AnimeSeasonId
 import me.him188.ani.danmaku.protocol.AnimeSeasonIdList
+import me.him188.ani.danmaku.protocol.BatchGetSubjectRecurrenceResponse
 import me.him188.ani.danmaku.protocol.OnAirAnimeInfo
 import me.him188.ani.danmaku.server.service.AnimeScheduleService
+import me.him188.ani.danmaku.server.util.exception.BadRequestException
 import org.koin.ktor.ext.inject
 
 fun Route.animeScheduleRouting() {
@@ -125,6 +127,61 @@ fun Route.animeScheduleRouting() {
                     schedule,
                 )
             }
+        }
+
+        get(
+            "subjects",
+            {
+                summary = "查询一些条目的连载信息"
+                description = "查询一些条目的连载信息"
+                operationId = "getSubjectRecurrences"
+                request {
+                    pathParameter<List<String>>("ids") {
+                        description = "需要查询的条目 ID 列表, 以英文逗号分隔."
+                        example("example") {
+                            value = listOf("404480", "123123123")
+                        }
+                    }
+                }
+                response {
+                    code(HttpStatusCode.OK) {
+                        description = "获取成功"
+                        body<BatchGetSubjectRecurrenceResponse> {
+                            description =
+                                "条目的连载信息. 每个元素按顺序分别对应请求中的条目 ID, null 表示未找到对应条目."
+                            example("example") {
+                                value = BatchGetSubjectRecurrenceResponse(
+                                    listOf(
+                                        AnimeRecurrence(
+                                            startTime = Instant.parse("2024-10-06T08:00:00Z").toString(),
+                                            intervalMillis = 604800000,
+                                        ),
+                                        null,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                    code(HttpStatusCode.BadRequest) {
+                        description = "body 内容格式有误"
+                    }
+                }
+            },
+        ) {
+            val req = call.parameters.getAll("ids").orEmpty()
+                .asSequence()
+                .flatMap { it.split(",") }
+                .map { it.toIntOrNull() ?: throw BadRequestException("Parameter `ids` contains illegal element: $it") }
+                .toList()
+            val recurrences = scheduleService.getSubjectRecurrences()
+            call.respond(
+                HttpStatusCode.OK,
+                BatchGetSubjectRecurrenceResponse(
+                    req.map { id ->
+                        recurrences[id]
+                    },
+                ),
+            )
         }
     }
 }

@@ -1,5 +1,7 @@
 package me.him188.ani.danmaku.server.service
 
+import androidx.collection.IntObjectMap
+import androidx.collection.mutableIntObjectMapOf
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.UserAgent
@@ -41,9 +43,18 @@ import kotlin.time.Duration.Companion.minutes
 class AnimeScheduleService(
     private val fetcher: AnimeScheduleFetcher = BangumiDataAnimeScheduleFetcher,
 ) {
+    private val subjectRecurrencesCache = ConcurrentMemoryCache<IntObjectMap<AnimeRecurrence>>(60.minutes)
     private val seasonsCache = ConcurrentMemoryCache<List<AnimeSeasonId>>(60.minutes)
     private val scheduleCache = ConcurrentMemoryCacheMap<AnimeSeasonId, AnimeSchedule>(60.minutes)
     private val lock = Mutex()
+    private val getSubjectRecurrencesLock = Mutex()
+
+    suspend fun getSubjectRecurrences(): IntObjectMap<AnimeRecurrence> =
+        getSubjectRecurrencesLock.withLock {
+            subjectRecurrencesCache.getOrPut {
+                fetcher.fetchSubjectRecurrences()
+            }
+        }
 
     suspend fun getAnimeSchedule(seasonId: AnimeSeasonId): AnimeSchedule? = scheduleCache.getOrPut(seasonId) {
         // 不要锁, 否则失去并发
@@ -59,11 +70,13 @@ class AnimeScheduleService(
             fetcher.fetchSeasonIds().sortedDescending()
         }
     }
+
 }
 
 interface AnimeScheduleFetcher {
     suspend fun fetchSeasonIds(): List<AnimeSeasonId>
     suspend fun fetchSchedule(season: AnimeSeasonId): AnimeSchedule?
+    suspend fun fetchSubjectRecurrences(): IntObjectMap<AnimeRecurrence>
 }
 
 //https://github.com/bangumi-data/bangumi-data
@@ -126,6 +139,23 @@ object BangumiDataAnimeScheduleFetcher : AnimeScheduleFetcher {
         )
     }
 
+    override suspend fun fetchSubjectRecurrences(): IntObjectMap<AnimeRecurrence> {
+        val resp =
+            httpClient.get("https://raw.githubusercontent.com/bangumi-data/bangumi-data/refs/heads/master/dist/data.json") {
+                accept(ContentType.Application.Json)
+            }.bodyDeserialized(RawBangumiData.serializer())
+
+        return mutableIntObjectMapOf<AnimeRecurrence>().apply {
+            for (item in resp.items) {
+                val bangumiId = item.sites.find { it.site == "bangumi" }?.id?.toIntOrNull() ?: continue
+                put(
+                    bangumiId,
+                    parseRecurrence(item.broadcast) ?: continue,
+                )
+            }
+        }
+    }
+
     private suspend fun getMonthDataOrNull(year: Int, month: Int): List<BangumiDataAnime>? {
         try {
             return httpClient.get(
@@ -185,14 +215,6 @@ private data class BangumiDataAnime(
     val sites: List<BangumiDataAnimeSite>
 )
 
-/**
- * [BangumiDataAnime] 的只包含 [begin] 的版本.
- */
-@Serializable
-private data class BangumiDataAnimeBeginOnly(
-    val begin: String = "",
-)
-
 @Serializable
 private data class BangumiDataAnimeSite(
     val site: String = "", // name
@@ -201,7 +223,8 @@ private data class BangumiDataAnimeSite(
 
 suspend fun main() {
 //    println(AnimeScheduleService().getSeasonIds())
-    println(AnimeScheduleService().getAnimeSchedule(AnimeSeasonId(2024, AnimeSeason.WINTER)))
+//    println(AnimeScheduleService().getAnimeSchedule(AnimeSeasonId(2024, AnimeSeason.WINTER)))
+    println(AnimeScheduleService().getSubjectRecurrences())
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -210,5 +233,5 @@ suspend fun main() {
 
 @Serializable
 private data class RawBangumiData(
-    val items: List<BangumiDataAnimeBeginOnly>
+    val items: List<BangumiDataAnime>
 )
