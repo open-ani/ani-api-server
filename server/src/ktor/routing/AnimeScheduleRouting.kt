@@ -130,13 +130,13 @@ fun Route.animeScheduleRouting() {
         }
 
         get(
-            "subjects?ids={ids}",
+            "subjects",
             {
                 summary = "查询一些条目的连载信息"
                 description = "查询一些条目的连载信息"
                 operationId = "getSubjectRecurrences"
                 request {
-                    pathParameter<List<Int>>("ids") {
+                    queryParameter<List<Int>>("ids") {
                         description = "需要查询的条目 ID 列表, 以英文逗号分隔."
                         example("example") {
                             value = listOf(404480, 123123123)
