@@ -54,9 +54,9 @@ data class AnimeSeasonId(
     // serialized
     val id: String = "${year}q${season.quarterNumber}"
 
-    val yearMonthRanges
+    val yearMonths
         get() = when (season) {
-            AnimeSeason.WINTER -> listOf(year - 1 to 12, year to 11, year to 10)
+            AnimeSeason.WINTER -> listOf(year - 1 to 12, year to 1, year to 2)
             AnimeSeason.SPRING -> listOf(year to 3, year to 4, year to 5)
             AnimeSeason.SUMMER -> listOf(year to 6, year to 7, year to 8)
             AnimeSeason.AUTUMN -> listOf(year to 9, year to 10, year to 11)

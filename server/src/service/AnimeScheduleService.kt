@@ -108,7 +108,7 @@ object BangumiDataAnimeScheduleFetcher : AnimeScheduleFetcher {
     }
 
     override suspend fun fetchSchedule(season: AnimeSeasonId): AnimeSchedule = withContext(Dispatchers.IO) {
-        val resp = season.yearMonthRanges.flatMap { (year, month) ->
+        val resp = season.yearMonths.flatMap { (year, month) ->
             getMonthDataOrNull(year, month) ?: emptyList()
         }
 
