@@ -139,13 +139,13 @@ object BangumiDataAnimeScheduleFetcher : AnimeScheduleFetcher {
         )
     }
 
-    override suspend fun fetchSubjectRecurrences(): IntObjectMap<AnimeRecurrence> {
+    override suspend fun fetchSubjectRecurrences(): IntObjectMap<AnimeRecurrence> = withContext(Dispatchers.IO) {
         val resp =
             httpClient.get("https://raw.githubusercontent.com/bangumi-data/bangumi-data/refs/heads/master/dist/data.json") {
                 accept(ContentType.Application.Json)
             }.bodyDeserialized(RawBangumiData.serializer())
 
-        return mutableIntObjectMapOf<AnimeRecurrence>().apply {
+        mutableIntObjectMapOf<AnimeRecurrence>().apply {
             for (item in resp.items) {
                 val bangumiId = item.sites.find { it.site == "bangumi" }?.id?.toIntOrNull() ?: continue
                 put(
