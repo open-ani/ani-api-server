@@ -13,8 +13,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -93,24 +95,24 @@ object BangumiDataAnimeScheduleFetcher : AnimeScheduleFetcher {
         }
     }
 
-    override suspend fun fetchSeasonIds(): List<AnimeSeasonId> {
+    override suspend fun fetchSeasonIds(): List<AnimeSeasonId> = withContext(Dispatchers.IO) {
         val resp =
             httpClient.get("https://raw.githubusercontent.com/bangumi-data/bangumi-data/refs/heads/master/dist/data.json") {
                 accept(ContentType.Application.Json)
             }.bodyDeserialized(RawBangumiData.serializer())
 
-        return resp.items.mapTo(HashSet()) {
+        resp.items.mapTo(HashSet()) {
             val localDateTime = Instant.parse(it.begin).toLocalDateTime(TimeZone.of("Asia/Tokyo"))
             AnimeSeasonId.fromDate(localDateTime.year, localDateTime.monthNumber)
         }.toList()
     }
 
-    override suspend fun fetchSchedule(season: AnimeSeasonId): AnimeSchedule {
+    override suspend fun fetchSchedule(season: AnimeSeasonId): AnimeSchedule = withContext(Dispatchers.IO) {
         val resp = season.yearMonthRanges.flatMap { (year, month) ->
             getMonthDataOrNull(year, month) ?: emptyList()
         }
 
-        return AnimeSchedule(
+        AnimeSchedule(
             list = resp.mapNotNull { anime ->
                 OnAirAnimeInfo(
                     bangumiId = anime.sites.find { it.site == "bangumi" }?.id?.toIntOrNull() ?: return@mapNotNull null,
