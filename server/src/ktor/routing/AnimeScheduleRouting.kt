@@ -38,9 +38,11 @@ fun Route.animeScheduleRouting() {
                             example("example") {
                                 value = AnimeSeasonIdList(
                                     listOf(
-                                        AnimeSeasonId(2024, AnimeSeason.WINTER),
                                         AnimeSeasonId(2024, AnimeSeason.AUTUMN),
                                         AnimeSeasonId(2024, AnimeSeason.SUMMER),
+                                        AnimeSeasonId(2024, AnimeSeason.SPRING),
+                                        AnimeSeasonId(2024, AnimeSeason.WINTER),
+                                        AnimeSeasonId(2023, AnimeSeason.AUTUMN),
                                     ),
                                 )
                             }

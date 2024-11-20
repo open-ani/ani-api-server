@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AnimeSeasonIdList(
-    val list: List<AnimeSeasonId>
+    val list: List<AnimeSeasonId>,
 )
 
 @Serializable
@@ -56,6 +56,7 @@ data class AnimeSeasonId(
 
     val yearMonths
         get() = when (season) {
+            // 2024 年 1 月新番, 是从 2023 年 12 月末开播, 播到 2024 年 3 月.
             AnimeSeason.WINTER -> listOf(year - 1 to 12, year to 1, year to 2)
             AnimeSeason.SPRING -> listOf(year to 3, year to 4, year to 5)
             AnimeSeason.SUMMER -> listOf(year to 6, year to 7, year to 8)
