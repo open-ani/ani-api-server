@@ -46,11 +46,10 @@ class AnimeScheduleService(
     private val lock = Mutex()
 
     suspend fun getAnimeSchedule(seasonId: AnimeSeasonId): AnimeSchedule? = scheduleCache.getOrPut(seasonId) {
-        lock.withLock {
-            scheduleCache[seasonId]?.let { return it }
+        // 不要锁, 否则失去并发
+        scheduleCache[seasonId]?.let { return it }
 
-            fetcher.fetchSchedule(seasonId) ?: return null
-        }
+        fetcher.fetchSchedule(seasonId) ?: return null
     }
 
     suspend fun getSeasonIds(): List<AnimeSeasonId> = seasonsCache.getOrPut {
