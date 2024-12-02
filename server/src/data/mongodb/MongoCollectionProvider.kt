@@ -10,6 +10,7 @@ import data.model.BangumiOauthModel
 import kotlinx.coroutines.flow.toList
 import me.him188.ani.danmaku.server.ServerConfig
 import me.him188.ani.danmaku.server.data.model.DanmakuModel
+import me.him188.ani.danmaku.server.data.model.SubscriptionWhitelistModel
 import me.him188.ani.danmaku.server.data.model.UserModel
 import me.him188.ani.danmaku.server.ktor.plugins.ServerJson
 import org.bson.UuidRepresentation
