@@ -7,9 +7,7 @@ import com.mongodb.client.model.Indexes
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import data.model.BangumiOauthModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
 import me.him188.ani.danmaku.server.ServerConfig
 import me.him188.ani.danmaku.server.data.model.DanmakuModel
 import me.him188.ani.danmaku.server.data.model.UserModel
@@ -18,7 +16,6 @@ import org.bson.UuidRepresentation
 import org.bson.codecs.configuration.CodecRegistries
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
-import org.koin.core.qualifier.named
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 
@@ -27,6 +24,7 @@ interface MongoCollectionProvider {
     val danmakuTable: MongoCollection<DanmakuModel>
     val userTable: MongoCollection<UserModel>
     val bangumiOauthTable: MongoCollection<BangumiOauthModel>
+    val subscriptionWhitelist: MongoCollection<SubscriptionWhitelistModel>
 }
 
 class MongoCollectionProviderImpl : MongoCollectionProvider, KoinComponent {
@@ -50,6 +48,8 @@ class MongoCollectionProviderImpl : MongoCollectionProvider, KoinComponent {
     override val danmakuTable = db.getCollection<DanmakuModel>("danmaku")
     override val userTable = db.getCollection<UserModel>("user")
     override val bangumiOauthTable = db.getCollection<BangumiOauthModel>("bangumi-oauth")
+    override val subscriptionWhitelist: MongoCollection<SubscriptionWhitelistModel> =
+        db.getCollection<SubscriptionWhitelistModel>("sub-whitelist")
 
     suspend fun buildIndex() {
         if (danmakuTable.listIndexes().toList().size == 1) {
