@@ -12,7 +12,7 @@ import me.him188.ani.danmaku.server.data.model.SubscriptionWhitelistModel
 import me.him188.ani.danmaku.server.data.mongodb.MongoCollectionProvider
 import me.him188.ani.danmaku.server.data.mongodb.findBy
 import me.him188.ani.danmaku.server.util.ConcurrentMemoryCacheMap
-import me.him188.ani.danmaku.server.util.exception.BadRequestException
+import me.him188.ani.danmaku.server.util.exception.UnprocessableEntityException
 import me.him188.ani.danmaku.server.util.getOrPut
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -45,7 +45,7 @@ class SubscriptionProxyService : KoinComponent {
 
         if (first == null) {
             // not in whitelist
-            throw BadRequestException("URL not in whitelist")
+            throw UnprocessableEntityException("URL not allowed")
         }
 
         return mutex.withLock {

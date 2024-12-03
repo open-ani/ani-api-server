@@ -63,3 +63,9 @@ class OperationFailedException : HttpRequestException() {
     override val statusCode: Int = 511
     override val statusMessage: String = "Operation Failed"
 }
+
+class UnprocessableEntityException(
+    override val statusMessage: String = HttpStatusCode.UnprocessableEntity.description,
+) : HttpRequestException() {
+    override val statusCode: Int = HttpStatusCode.UnprocessableEntity.value
+}
