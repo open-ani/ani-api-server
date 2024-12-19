@@ -5,6 +5,7 @@ import androidx.collection.IntObjectMap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asFlow
@@ -26,7 +27,8 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 class SubjectRelationService {
-    private val cachedIndex = MutableSharedFlow<IntObjectMap<SubjectRelationIndex>>()
+    private val cachedIndex =
+        MutableSharedFlow<IntObjectMap<SubjectRelationIndex>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     suspend fun getRelatedSubjects(subjectId: Int): IntList? {
         return cachedIndex.first()[subjectId]?.relatedAnimeSubjectIds
