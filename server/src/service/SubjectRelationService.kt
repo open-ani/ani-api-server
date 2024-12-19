@@ -2,11 +2,14 @@ package me.him188.ani.danmaku.server.service
 
 import androidx.collection.IntList
 import androidx.collection.IntObjectMap
-import androidx.collection.MutableIntObjectMap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import me.him188.ani.danmaku.server.util.error
 import me.him188.ani.danmaku.server.util.info
@@ -20,24 +23,33 @@ import java.time.ZonedDateTime
 import java.time.temporal.TemporalAdjusters
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 class SubjectRelationService {
-    private var cachedIndex: IntObjectMap<SubjectRelationIndex> = MutableIntObjectMap()
+    private val cachedIndex = MutableSharedFlow<IntObjectMap<SubjectRelationIndex>>()
 
-    fun getRelatedSubjects(subjectId: Int): IntList? {
-        return cachedIndex[subjectId]?.relatedAnimeSubjectIds
+    suspend fun getRelatedSubjects(subjectId: Int): IntList? {
+        return cachedIndex.first()[subjectId]?.relatedAnimeSubjectIds
     }
 
     init {
         @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.launch {
             while (true) {
-                try {
-                    logger.info { "Updating subject relations" }
-                    update()
-                } catch (e: Throwable) {
-                    logger.error(e) { "Failed to update subject relations" }
-                }
+                suspend {
+                    try {
+                        logger.info { "Updating subject relations" }
+                        update()
+                    } catch (e: Throwable) {
+                        logger.error(e) { "Failed to update subject relations, retrying in 1 minute" }
+                    }
+                }.asFlow()
+                    .retry {
+                        delay(1.minutes)
+                        true
+                    }
+                    .first()
+
                 val nextUpdateDelay = millisUntilNextUpdate().milliseconds + 1.hours
                 logger.info { "Next update in $nextUpdateDelay" }
                 delay(nextUpdateDelay)
@@ -74,7 +86,7 @@ class SubjectRelationService {
 
         SubjectRelationsParser.createNewIndex(jsonlinesPath).let { index ->
             logger.info { "Index size: ${index.size}" }
-            cachedIndex = index
+            cachedIndex.emit(index)
         }
     }
 
