@@ -16,8 +16,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import me.him188.ani.danmaku.server.util.trim
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.TreeMap
 import java.util.zip.ZipFile
@@ -174,38 +176,32 @@ class SubjectRelationsParser {
     }
 
     fun createIndex(table: SubjectRelationsTable): IntObjectMap<SubjectRelationIndex> {
-        // Relations that we consider valid for building the index
-        val allowedRelations = arrayOf(
-            3,  // 续集 (Sequel)
-            2,  // 前传 (Prequel)
-            6,  // 番外篇 (Side Story)
-            11,  // 衍生 (Derived Work)
-        )
-
         // We'll build a map from subject to its full set of related subjects
         val index = MutableIntObjectMap<SubjectRelationIndex>()
 
         // A recursive function that, given a starting subject, finds all directly and indirectly related subjects.
         // Each subject search is isolated with its own visited set.
-        fun collectRelated(subjectId: Int, visited: MutableSet<Int>): Set<Int> {
+        fun collectRelated(
+            subjectId: Int, visited: MutableSet<Int>,
+            allowedRelations: Array<Int>
+        ): IntList {
             // Mark current subject as visited to avoid cycles
             visited.add(subjectId)
 
             // Get directly related subjects for this subject, filtering by allowed relations
-            val directlyRelated = table.contents[subjectId]
-                ?.filter { it.relationType in allowedRelations }
-                ?.map { it.relatedSubjectId }
-                ?: emptyList()
+            val directlyRelated = table.contents[subjectId].orEmpty()
+                .filter { it.relationType in allowedRelations }
+                .map { it.relatedSubjectId }
 
             // Use a set to accumulate all related subjects (direct + indirect)
-            val allRelated = mutableSetOf<Int>()
+            val allRelated = mutableIntListOf()
 
             for (relatedId in directlyRelated) {
                 if (relatedId !in visited) {
                     // Add this directly related subject
                     allRelated.add(relatedId)
                     // Recursively find all subjects related to this relatedId
-                    allRelated.addAll(collectRelated(relatedId, visited))
+                    allRelated.addAll(collectRelated(relatedId, visited, allowedRelations))
                 }
             }
 
@@ -215,19 +211,32 @@ class SubjectRelationsParser {
         // Build the index for each subject
         for ((subjectId, _) in table.contents) {
             // For each subject, start a fresh visited set
-            val visited = mutableSetOf<Int>()
-            val allRelated = collectRelated(subjectId, visited)
             index[subjectId] = SubjectRelationIndex(
-                mutableIntListOf().apply {
-                    allRelated.forEach { add(it) }
-                    trim()
-                },
+                seriesMainAnimeSubjectIds = collectRelated(
+                    subjectId,
+                    mutableSetOf<Int>(),
+                    arrayOf(
+                        3,  // 续集 (Sequel)
+                        6,  // 番外篇 (Side Story)
+                        11,  // 衍生 (Derived Work)
+                    ),
+                ).trim(),
+                sequelAnimeSubjectIds = collectRelated(
+                    subjectId,
+                    mutableSetOf<Int>(),
+                    arrayOf(
+                        2,  // 前传 (Prequel)
+                        3,  // 续集 (Sequel)
+                        6,  // 番外篇 (Side Story)
+                        11,  // 衍生 (Derived Work)
+                    ),
+                ).trim(),
             )
         }
 
         // Remove subjects with no related anime
         index.removeIf { key, value ->
-            value.relatedAnimeSubjectIds.isEmpty()
+            value.sequelAnimeSubjectIds.isEmpty()
         }
 
         index.trim() // Trim the index to save memory
@@ -273,8 +282,11 @@ class SubjectRelationsTable(
     val contents: Map<Int, List<Relation>>
 )
 
-class SubjectRelationIndex internal constructor(
-    val relatedAnimeSubjectIds: IntList, // memory efficient than List<Int>
+@ConsistentCopyVisibility
+data class SubjectRelationIndex internal constructor(
+    // IntList is memory efficient than List<Int>
+    val seriesMainAnimeSubjectIds: IntList,
+    val sequelAnimeSubjectIds: IntList, // TODO: 2024/12/19 这个排序不正确, 目前是乱的
 )
 
 @Serializable
@@ -285,11 +297,11 @@ private data class SubjectInfo(
 )
 
 suspend fun main() {
-    val jsonlinesPath = SubjectRelationUpdater(Path.of("cache")).run {
-        getNewSubjectRelations()
-    }
-    val fileSize = String.format("%.2f", Files.size(jsonlinesPath).toDouble() / 1024 / 1024)
-    println("Downloaded new subject relations to: $jsonlinesPath, file size: $fileSize MB")
+//    val jsonlinesPath = SubjectRelationUpdater(Path.of("cache")).run {
+//        getNewSubjectRelations()
+//    }
+//    val fileSize = String.format("%.2f", Files.size(jsonlinesPath).toDouble() / 1024 / 1024)
+//    println("Downloaded new subject relations to: $jsonlinesPath, file size: $fileSize MB")
 
     suspend fun HttpClient.getSubjectNameById(id: Int): String {
         val response = get("https://api.bgm.tv/v0/subjects/$id") {
@@ -298,9 +310,10 @@ suspend fun main() {
     }
 
     SubjectRelationsParser().run {
-        val table = parseSubjectRelationsJsonlines(jsonlinesPath)
+        val table = parseSubjectRelationsJsonlines(Paths.get("cache/subject-relations.jsonlines"))
         println("Table size: ${table.contents.size}")
         val index = createIndex(table)
         println("Index size: ${index.size}")
+        println("index for 302523: ${index[302523]}")
     }
 }

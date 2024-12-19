@@ -1,6 +1,5 @@
 package me.him188.ani.danmaku.server.service
 
-import androidx.collection.IntList
 import androidx.collection.IntObjectMap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -30,8 +29,8 @@ class SubjectRelationService {
     private val cachedIndex =
         MutableSharedFlow<IntObjectMap<SubjectRelationIndex>>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    suspend fun getRelatedSubjects(subjectId: Int): IntList? {
-        return cachedIndex.first()[subjectId]?.relatedAnimeSubjectIds
+    suspend fun getSubjectRelationIndex(subjectId: Int): SubjectRelationIndex? {
+        return cachedIndex.first()[subjectId]
     }
 
     init {

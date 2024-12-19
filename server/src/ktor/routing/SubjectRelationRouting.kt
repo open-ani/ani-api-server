@@ -9,6 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.util.getOrFail
 import me.him188.ani.danmaku.protocol.SubjectRelations
 import me.him188.ani.danmaku.server.service.SubjectRelationService
+import me.him188.ani.danmaku.server.util.toList
 import org.koin.ktor.ext.inject
 
 
@@ -39,16 +40,18 @@ fun Route.subjectRelationRouting() {
             },
         ) {
             val subjectId = call.parameters.getOrFail("subjectId").toInt()
+            val index = subjectRelationService.getSubjectRelationIndex(subjectId)
             call.respond(
                 HttpStatusCode.OK,
-                SubjectRelations(
-                    subjectId = subjectId,
-                    relatedSubjects = mutableSetOf<Int>().apply {
-                        subjectRelationService.getRelatedSubjects(subjectId)?.forEach {
-                            add(it)
-                        }
-                    },
-                ),
+                if (index == null) {
+                    SubjectRelations(subjectId, emptyList())
+                } else {
+                    SubjectRelations(
+                        subjectId = subjectId,
+                        sequelSubjects = index.sequelAnimeSubjectIds.toList(),
+//                        seriesMainSubjects = index.seriesMainAnimeSubjectIds.toList(),
+                    )
+                },
             )
         }
     }
