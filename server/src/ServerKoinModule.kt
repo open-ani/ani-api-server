@@ -25,6 +25,7 @@ import me.him188.ani.danmaku.server.service.DanmakuService
 import me.him188.ani.danmaku.server.service.DanmakuServiceImpl
 import me.him188.ani.danmaku.server.service.JwtTokenManager
 import me.him188.ani.danmaku.server.service.JwtTokenManagerImpl
+import me.him188.ani.danmaku.server.service.SubjectRelationService
 import me.him188.ani.danmaku.server.service.SubscriptionProxyService
 import me.him188.ani.danmaku.server.service.TestBangumiLoginHelperImpl
 import me.him188.ani.danmaku.server.service.TestClientReleaseInfoManager
@@ -57,6 +58,7 @@ fun getServerKoinModule(
     }
     single<DistributionSuffixParser> { DistributionSuffixParserImpl() }
     single<SubscriptionProxyService> { SubscriptionProxyService() }
+    single<SubjectRelationService> { SubjectRelationService() }
 
     if (config.testing) {
         single<DanmakuRepository> { InMemoryDanmakuRepositoryImpl() }

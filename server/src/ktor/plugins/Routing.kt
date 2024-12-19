@@ -14,6 +14,7 @@ import io.ktor.server.routing.routing
 import me.him188.ani.danmaku.server.ktor.routing.animeScheduleRouting
 import me.him188.ani.danmaku.server.ktor.routing.authRouting
 import me.him188.ani.danmaku.server.ktor.routing.danmakuRouting
+import me.him188.ani.danmaku.server.ktor.routing.subjectRelationRouting
 import me.him188.ani.danmaku.server.ktor.routing.subscriptions
 import me.him188.ani.danmaku.server.ktor.routing.trends
 import me.him188.ani.danmaku.server.ktor.routing.updatesRouting
@@ -59,6 +60,7 @@ internal fun Application.configureRouting() {
             trends()
             animeScheduleRouting()
             subscriptions()
+            subjectRelationRouting()
         }
     }
 }
