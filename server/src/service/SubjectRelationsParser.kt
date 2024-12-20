@@ -216,16 +216,14 @@ class SubjectRelationsParser {
                     subjectId,
                     mutableSetOf<Int>(),
                     arrayOf(
+                        2,  // 前传 (Prequel)
                         3,  // 续集 (Sequel)
-                        6,  // 番外篇 (Side Story)
-                        11,  // 衍生 (Derived Work)
                     ),
                 ).trim(),
                 sequelAnimeSubjectIds = collectRelated(
                     subjectId,
                     mutableSetOf<Int>(),
                     arrayOf(
-                        2,  // 前传 (Prequel)
                         3,  // 续集 (Sequel)
                         6,  // 番外篇 (Side Story)
                         11,  // 衍生 (Derived Work)
@@ -285,8 +283,8 @@ class SubjectRelationsTable(
 @ConsistentCopyVisibility
 data class SubjectRelationIndex internal constructor(
     // IntList is memory efficient than List<Int>
-    val seriesMainAnimeSubjectIds: IntList,
-    val sequelAnimeSubjectIds: IntList, // TODO: 2024/12/19 这个排序不正确, 目前是乱的
+    val seriesMainAnimeSubjectIds: IntList,// TODO: 2024/12/19 这个排序不正确, 目前是乱的
+    val sequelAnimeSubjectIds: IntList,
 )
 
 @Serializable
@@ -314,6 +312,6 @@ suspend fun main() {
         println("Table size: ${table.contents.size}")
         val index = createIndex(table)
         println("Index size: ${index.size}")
-        println("index for 302523: ${index[302523]}")
+        println("index for 302523: ${index[358801]}")
     }
 }
