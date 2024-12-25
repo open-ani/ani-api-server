@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
+import me.him188.ani.danmaku.server.domain.subject.SubjectRelationIndex
+import me.him188.ani.danmaku.server.domain.subject.SubjectRelationUpdater
+import me.him188.ani.danmaku.server.domain.subject.SubjectRelationsParser
 import me.him188.ani.danmaku.server.util.error
 import me.him188.ani.danmaku.server.util.info
 import me.him188.ani.danmaku.server.util.logger
