@@ -187,6 +187,9 @@ class SubjectRelationsIndexer(
 
         // 这里演示：对 table 中「所有有关系信息」的 subjectId，构建索引
         for ((subjectId, _) in subjectRelationsTable.contents) {
+            if (index.contains(subjectId)) continue // already built
+
+            if (subjectId != 303864) continue
             // 1) 找最早一季
             val earliest = findEarliestSeasonSubject(subjectId)
             // 2) 从 earliest 一直向后找续集，得到完整主线（过滤集数 < 8 的）
@@ -208,7 +211,7 @@ class SubjectRelationsIndexer(
         }
 
         // 最后，移除没有 sequel 的 subject (可按业务需求调整)
-        index.removeIf { _, value -> value.sequelAnimeSubjectIds.isEmpty() }
+        index.removeIf { _, value -> value.isEmpty() }
 
         // trim 以节省内存
         index.trim()
@@ -322,7 +325,9 @@ data class SubjectRelationIndex internal constructor(
      */
     val seriesMainAnimeSubjectIds: IntList,
     val sequelAnimeSubjectIds: IntList,
-)
+) {
+    fun isEmpty(): Boolean = seriesMainAnimeSubjectIds.isEmpty() && sequelAnimeSubjectIds.isEmpty()
+}
 
 suspend fun main() {
 //    val jsonlinesPath = SubjectRelationUpdater(Path.of("cache")).run {
@@ -333,17 +338,19 @@ suspend fun main() {
 
     SubjectRelationsParser().run {
         val subjectRelations = parseSubjectRelationsTable(Paths.get("cache/subject-relations.jsonlines"))
-        val subjectTable = parseSubjectTable(Paths.get("cache/subject.jsonlines"))
         val episodeTable = parseEpisodeTable(Paths.get("cache/episode.jsonlines"))
+
+        println(subjectRelations.contents.filter { it.key == 303864 })
 
         println("Table size: ${subjectRelations.contents.size}")
         SubjectRelationsIndexer(subjectRelations, episodeTable).run {
+            val subjectTable = parseSubjectTable(Paths.get("cache/subject.jsonlines"))
             val index = createIndex()
             println("Index size: ${index.size}")
-            println(episodeTable.subjectToEpSize[302523])
+            println(episodeTable.subjectToEpSize[303864])
             println(
-                "series for 302523: ${
-                    index[302523]?.seriesMainAnimeSubjectIds?.toList()
+                "series for 303864: ${
+                    index[303864]?.seriesMainAnimeSubjectIds?.toList()
                         ?.map { it.toString() + subjectTable.getSubjectNameById(it) }
                 }",
             )
