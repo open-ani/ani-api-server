@@ -1,8 +1,10 @@
 package me.him188.ani.danmaku.server.domain.subject
 
+import androidx.collection.IntIntMap
 import androidx.collection.IntList
 import androidx.collection.IntObjectMap
 import androidx.collection.MutableIntObjectMap
+import androidx.collection.mutableIntIntMapOf
 import androidx.collection.mutableIntListOf
 import androidx.collection.mutableIntSetOf
 import kotlinx.coroutines.awaitCancellation
@@ -69,9 +71,9 @@ class SubjectRelationsParser {
     }
 
     fun parseEpisodeTable(input: Path): EpisodeTable {
-        // {"id":1,"subject_id":1,"sort":1,"airdate":"2006-04-06","type":0}
-        val map = TreeMap<Int, MutableList<Episode>>()
-        val subjectToEps = mutableMapOf<Int, MutableList<Episode>>()
+        val sizeMap = mutableIntIntMapOf()
+//        val map = TreeMap<Int, MutableList<Episode>>()
+//        val subjectToEps = mutableMapOf<Int, MutableList<Episode>>()
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -80,12 +82,13 @@ class SubjectRelationsParser {
         input.useLines { lines ->
             lines.forEach { line ->
                 val episode = json.decodeFromString(Episode.serializer(), line)
-                map.computeIfAbsent(episode.id, mutableListLambda).add(episode)
-                subjectToEps.computeIfAbsent(episode.subjectId, mutableListLambda).add(episode)
+//                map.computeIfAbsent(episode.id, mutableListLambda).add(episode)
+//                subjectToEps.computeIfAbsent(episode.subjectId, mutableListLambda).add(episode)
+                sizeMap[episode.subjectId] = sizeMap.getOrDefault(episode.subjectId, 0) + 1
             }
         }
 
-        return EpisodeTable(map, subjectToEps)
+        return EpisodeTable(sizeMap)
     }
 }
 
@@ -112,10 +115,7 @@ class SubjectRelationsIndexer(
         }
 
         // 判断一个 subject 是否拥有至少 8 集
-        fun hasAtLeast8Episodes(subjectId: Int): Boolean {
-            val eps = episodeTable.subjectToEps[subjectId].orEmpty()
-            return eps.size >= 8
-        }
+        fun hasAtLeast8Episodes(subjectId: Int): Boolean = episodeTable.subjectToEpSize.getOrElse(subjectId) { 0 } >= 8
 
         /**
          * 找到从某一个 subject 出发，能追溯到的最早一季（即一直往前查找 relation = 前传 2）
@@ -304,8 +304,9 @@ data class Episode(
 )
 
 class EpisodeTable(
-    val contents: Map<Int, List<Episode>>,
-    val subjectToEps: Map<Int, List<Episode>>,
+//    val contents: Map<Int, List<Episode>>,
+//    val subjectToEp: Map<Int, List<Episode>>,
+    val subjectToEpSize: IntIntMap,
 )
 
 class SubjectRelationsTable(
@@ -339,7 +340,7 @@ suspend fun main() {
         SubjectRelationsIndexer(subjectRelations, episodeTable).run {
             val index = createIndex()
             println("Index size: ${index.size}")
-            println(episodeTable.subjectToEps[302523]!!.size)
+            println(episodeTable.subjectToEpSize[302523])
             println(
                 "series for 302523: ${
                     index[302523]?.seriesMainAnimeSubjectIds?.toList()
