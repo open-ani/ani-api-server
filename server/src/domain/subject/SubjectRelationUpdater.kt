@@ -94,7 +94,7 @@ class SubjectRelationUpdater(
             throw IllegalStateException("subject-relations.jsonlines not found after unzip.")
         }
 
-        jsonLinesPath
+        cacheDir
     }
 
     private fun unzip(zipFile: Path, targetDir: Path) {

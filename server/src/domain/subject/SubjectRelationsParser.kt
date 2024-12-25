@@ -7,6 +7,8 @@ import androidx.collection.mutableIntListOf
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import me.him188.ani.danmaku.server.util.trim
@@ -16,7 +18,7 @@ import java.util.TreeMap
 import kotlin.io.path.useLines
 
 class SubjectRelationsParser {
-    fun parseSubjectRelationsJsonlines(input: Path): SubjectRelationsTable {
+    fun parseSubjectRelationsTable(input: Path): SubjectRelationsTable {
         // {"subject_id":1,"relation_type":1,"related_subject_id":296317,"order":0}
         @Serializable
         @Suppress("PropertyName")
@@ -49,7 +51,49 @@ class SubjectRelationsParser {
         return SubjectRelationsTable(map)
     }
 
-    fun createIndex(table: SubjectRelationsTable): IntObjectMap<SubjectRelationIndex> {
+    fun parseSubjectTable(input: Path): SubjectTable {
+        // {"id":1,"type":2}
+        val map = TreeMap<Int, MutableList<Subject>>()
+        val json = Json {
+            ignoreUnknownKeys = true
+        }
+
+        val mutableListLambda: (Int) -> MutableList<Subject> = { ArrayList() }
+        input.useLines { lines ->
+            lines.forEach { line ->
+                val subject = json.decodeFromString(Subject.serializer(), line)
+                map.computeIfAbsent(subject.id, mutableListLambda).add(subject)
+            }
+        }
+
+        return SubjectTable(map)
+    }
+
+    fun parseEpisodeTable(input: Path): EpisodeTable {
+        // {"id":1,"subject_id":1,"sort":1,"airdate":"2006-04-06","type":0}
+        val map = TreeMap<Int, MutableList<Episode>>()
+        val subjectToEps = mutableMapOf<Int, MutableList<Episode>>()
+        val json = Json {
+            ignoreUnknownKeys = true
+        }
+
+        val mutableListLambda: (Int) -> MutableList<Episode> = { ArrayList() }
+        input.useLines { lines ->
+            lines.forEach { line ->
+                val episode = json.decodeFromString(Episode.serializer(), line)
+                map.computeIfAbsent(episode.id, mutableListLambda).add(episode)
+                subjectToEps.computeIfAbsent(episode.subjectId, mutableListLambda).add(episode)
+            }
+        }
+
+        return EpisodeTable(map, subjectToEps)
+    }
+
+    fun createIndex(
+        table: SubjectRelationsTable,
+        subjectTable: SubjectTable,
+        episodeTable: EpisodeTable
+    ): IntObjectMap<SubjectRelationIndex> {
         // We'll build a map from subject to its full set of related subjects
         val index = MutableIntObjectMap<SubjectRelationIndex>()
 
@@ -116,11 +160,15 @@ class SubjectRelationsParser {
     }
 
     companion object {
-        fun createNewIndex(jsonlinesPath: Path): IntObjectMap<SubjectRelationIndex> {
+        fun createNewIndex(cachePath: Path): IntObjectMap<SubjectRelationIndex> {
             val parser = SubjectRelationsParser()
-            val table = parser.parseSubjectRelationsJsonlines(jsonlinesPath)
+            val subjectRelationsTable =
+                parser.parseSubjectRelationsTable(cachePath.resolve("subject-relations.jsonlines"))
+            val subjectTable = parser.parseSubjectTable(cachePath.resolve("subject.jsonlines"))
+            val episodeTable = parser.parseEpisodeTable(cachePath.resolve("episode.jsonlines"))
+
 //            println("Table size: ${table.contents.size}")
-            val index = parser.createIndex(table)
+            val index = parser.createIndex(subjectRelationsTable, subjectTable, episodeTable)
 //            println("Index size: ${index.size}")
 //            Table size: 356626
 //            Index size: 16773
@@ -140,15 +188,31 @@ data class Relation(
     val order: Int,
     val relationType: Int,
 )
-//
-//data class Subject(
-//    val id: Int,
-//    val type: Int,
-//)
-//
-//class SubjectTable(
-//
-//)
+
+@Serializable
+data class Subject(
+    val id: Int,
+    val type: Int,
+)
+
+class SubjectTable(
+    val contents: Map<Int, List<Subject>>
+)
+
+@Serializable
+data class Episode(
+    val id: Int,
+    @SerialName("subject_id")
+    val subjectId: Int,
+    val sort: Float, // "1", "22.5"
+    val airdate: String, // yyyy-MM-dd
+    val type: Int, // 0: 主集, 1: 特别篇
+)
+
+class EpisodeTable(
+    val contents: Map<Int, List<Episode>>,
+    val subjectToEps: Map<Int, List<Episode>>,
+)
 
 class SubjectRelationsTable(
     val contents: Map<Int, List<Relation>>
@@ -157,7 +221,11 @@ class SubjectRelationsTable(
 @ConsistentCopyVisibility
 data class SubjectRelationIndex internal constructor(
     // IntList is memory efficient than List<Int>
-    val seriesMainAnimeSubjectIds: IntList,// TODO: 2024/12/19 这个排序不正确, 目前是乱的
+    /**
+     * The main anime subjects of this series, sorted by order of seasons.
+     * For example, the first element is the first season, the second element is the second season, and so on.
+     */
+    val seriesMainAnimeSubjectIds: IntList,
     val sequelAnimeSubjectIds: IntList,
 )
 
@@ -182,10 +250,15 @@ suspend fun main() {
     }
 
     SubjectRelationsParser().run {
-        val table = parseSubjectRelationsJsonlines(Paths.get("cache/subject-relations.jsonlines"))
-        println("Table size: ${table.contents.size}")
-        val index = createIndex(table)
+        val subjectRelations = parseSubjectRelationsTable(Paths.get("cache/subject-relations.jsonlines"))
+        val subjectTable = parseSubjectTable(Paths.get("cache/subject.jsonlines"))
+        val episodeTable = parseEpisodeTable(Paths.get("cache/episode.jsonlines"))
+
+        println("Table size: ${subjectRelations.contents.size}")
+        val index = createIndex(subjectRelations, subjectTable, episodeTable)
         println("Index size: ${index.size}")
-        println("index for 302523: ${index[358801]}")
+        println("index for 302523: ${index[302523]}")
+
+        awaitCancellation()
     }
 }

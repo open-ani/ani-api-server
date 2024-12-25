@@ -17,7 +17,6 @@ import me.him188.ani.danmaku.server.domain.subject.SubjectRelationsParser
 import me.him188.ani.danmaku.server.util.error
 import me.him188.ani.danmaku.server.util.info
 import me.him188.ani.danmaku.server.util.logger
-import java.nio.file.Files
 import java.nio.file.Path
 import java.time.DayOfWeek
 import java.time.Duration
@@ -82,13 +81,13 @@ class SubjectRelationService {
     }
 
     suspend fun update() {
-        val jsonlinesPath = SubjectRelationUpdater(Path.of("cache")).run {
+        val cachePath = SubjectRelationUpdater(Path.of("cache")).run {
             getNewSubjectRelations()
         }
-        val fileSize = String.format("%.2f", Files.size(jsonlinesPath).toDouble() / 1024 / 1024)
-        logger.info { "Downloaded new subject relations to: $jsonlinesPath, file size: $fileSize MB" }
+//        val fileSize = String.format("%.2f", Files.size(cachePath.resolve("subject-relations.jsonlines")).toDouble() / 1024 / 1024)
+//        logger.info { "Downloaded new subject relations to: $cachePath, file size: $fileSize MB" }
 
-        SubjectRelationsParser.createNewIndex(jsonlinesPath).let { index ->
+        SubjectRelationsParser.createNewIndex(cachePath).let { index ->
             logger.info { "Index size: ${index.size}" }
             cachedIndex.emit(index)
         }
