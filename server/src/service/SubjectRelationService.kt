@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import me.him188.ani.danmaku.server.domain.subject.SubjectRelationIndex
 import me.him188.ani.danmaku.server.domain.subject.SubjectRelationUpdater
-import me.him188.ani.danmaku.server.domain.subject.SubjectRelationsParser
+import me.him188.ani.danmaku.server.domain.subject.SubjectRelationsIndexer
 import me.him188.ani.danmaku.server.util.error
 import me.him188.ani.danmaku.server.util.info
 import me.him188.ani.danmaku.server.util.logger
@@ -87,7 +87,7 @@ class SubjectRelationService {
 //        val fileSize = String.format("%.2f", Files.size(cachePath.resolve("subject-relations.jsonlines")).toDouble() / 1024 / 1024)
 //        logger.info { "Downloaded new subject relations to: $cachePath, file size: $fileSize MB" }
 
-        SubjectRelationsParser.createNewIndex(cachePath).let { index ->
+        SubjectRelationsIndexer.createNewIndex(cachePath).let { index ->
             logger.info { "Index size: ${index.size}" }
             cachedIndex.emit(index)
         }

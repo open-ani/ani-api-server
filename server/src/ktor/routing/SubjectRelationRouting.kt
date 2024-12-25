@@ -44,10 +44,11 @@ fun Route.subjectRelationRouting() {
             call.respond(
                 HttpStatusCode.OK,
                 if (index == null) {
-                    SubjectRelations(subjectId, emptyList())
+                    SubjectRelations(subjectId, emptyList(), emptyList())
                 } else {
                     SubjectRelations(
                         subjectId = subjectId,
+                        seriesMainSubjectIds = index.seriesMainAnimeSubjectIds.toList(),
                         sequelSubjects = index.sequelAnimeSubjectIds.toList(),
 //                        seriesMainSubjects = index.seriesMainAnimeSubjectIds.toList(),
                     )
