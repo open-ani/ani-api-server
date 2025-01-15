@@ -126,6 +126,7 @@ object BangumiDataAnimeScheduleFetcher : AnimeScheduleFetcher {
         }
 
         AnimeSchedule(
+            seasonId = season,
             list = resp.mapNotNull { anime ->
                 OnAirAnimeInfo(
                     bangumiId = anime.sites.find { it.site == "bangumi" }?.id?.toIntOrNull() ?: return@mapNotNull null,
