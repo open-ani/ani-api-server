@@ -52,7 +52,7 @@ dependencies {
 
 application {
     mainClass.set("me.him188.ani.danmaku.server.ApplicationKt")
-    applicationDefaultJvmArgs = listOf("-Xmx256m", "-XX:+UseZGC")
+    applicationDefaultJvmArgs = listOf("-Xmx512m", "-XX:+UseZGC")
 }
 
 idea {
