@@ -13,6 +13,7 @@ import me.him188.ani.danmaku.protocol.AnimeSeason
 import me.him188.ani.danmaku.protocol.AnimeSeasonId
 import me.him188.ani.danmaku.protocol.AnimeSeasonIdList
 import me.him188.ani.danmaku.protocol.BatchGetSubjectRecurrenceResponse
+import me.him188.ani.danmaku.protocol.LatestAnimeSchedules
 import me.him188.ani.danmaku.protocol.OnAirAnimeInfo
 import me.him188.ani.danmaku.server.service.AnimeScheduleService
 import me.him188.ani.danmaku.server.util.exception.BadRequestException
@@ -59,6 +60,40 @@ fun Route.animeScheduleRouting() {
             )
         }
         get(
+            "seasons/latest",
+            {
+                summary = "获取最近几个季度的列表"
+                description = "获取最近几个季度的列表"
+                operationId = "getLatestAnimeSeasons"
+                response {
+                    HttpStatusCode.OK to {
+                        description = "获取成功"
+                        body<LatestAnimeSchedules> {
+                            description = "最近几个季度的新番季度列表, 保证由新到旧排序"
+                            example("example") {
+                                value = LatestAnimeSchedules(
+                                    listOf(
+                                        createExampleAnimeSchedule(),
+                                        createExampleAnimeSchedule(),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+        ) {
+            val ids = scheduleService.getSeasonIds()
+            call.respond(
+                HttpStatusCode.OK,
+                LatestAnimeSchedules(
+                    list = ids.take(2).mapNotNull {
+                        scheduleService.getAnimeSchedule(it)
+                    },
+                ),
+            )
+        }
+        get(
             "season/{seasonId}",
             {
                 summary = "获取一个季度的新番时间表"
@@ -79,28 +114,7 @@ fun Route.animeScheduleRouting() {
                         body<AnimeSchedule> {
                             description = "该季度的新番时间表, 无排序"
                             example("example") {
-                                value = AnimeSchedule(
-                                    list = listOf(
-                                        OnAirAnimeInfo(
-                                            bangumiId = 404480,
-                                            name = "ラブライブ！スーパースター!!(第3期)",
-                                            aliases = listOf(
-                                                "Love Live ! Superstar!!",
-                                                "Love Live! Superstar!! 第三季",
-                                                "爱与演唱会!超级明星!! 第三季",
-                                                "Love Live! Superstar!! 第三季",
-                                                "LoveLive! SuperStar!! 第三季",
-                                            ),
-                                            begin = Instant.parse("2024-10-06T08:00:00Z").toString(),
-                                            recurrence = AnimeRecurrence(
-                                                startTime = Instant.parse("2024-10-06T08:00:00Z").toString(),
-                                                intervalMillis = 604800000,
-                                            ),
-                                            end = null,
-                                            mikanId = 3427,
-                                        ),
-                                    ),
-                                )
+                                value = createExampleAnimeSchedule()
                             }
                         }
                     }
@@ -185,3 +199,27 @@ fun Route.animeScheduleRouting() {
         }
     }
 }
+
+private fun createExampleAnimeSchedule() = AnimeSchedule(
+    seasonId = AnimeSeasonId(2024, AnimeSeason.SUMMER),
+    list = listOf(
+        OnAirAnimeInfo(
+            bangumiId = 404480,
+            name = "ラブライブ！スーパースター!!(第3期)",
+            aliases = listOf(
+                "Love Live ! Superstar!!",
+                "Love Live! Superstar!! 第三季",
+                "爱与演唱会!超级明星!! 第三季",
+                "Love Live! Superstar!! 第三季",
+                "LoveLive! SuperStar!! 第三季",
+            ),
+            begin = Instant.parse("2024-10-06T08:00:00Z").toString(),
+            recurrence = AnimeRecurrence(
+                startTime = Instant.parse("2024-10-06T08:00:00Z").toString(),
+                intervalMillis = 604800000,
+            ),
+            end = null,
+            mikanId = 3427,
+        ),
+    ),
+)

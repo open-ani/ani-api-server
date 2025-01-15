@@ -10,7 +10,13 @@ data class AnimeSeasonIdList(
 
 @Serializable
 data class AnimeSchedule(
+    val seasonId: AnimeSeasonId,
     val list: List<OnAirAnimeInfo>
+)
+
+@Serializable
+data class LatestAnimeSchedules(
+    val list: List<AnimeSchedule>,
 )
 
 @Serializable
