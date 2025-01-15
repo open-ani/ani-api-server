@@ -14,6 +14,7 @@ data class DanmakuModel(
     val location: DanmakuLocation,
     val text: String,
     val color: Int,
+    // NOTE: 不要加字段. 新加的字段的默认值并不能在反序列化时起作用, 也就会导致无法反序列化旧数据
     val sendTime: Long = System.currentTimeMillis(),
     val complaintCount: Int = 0,
 )
