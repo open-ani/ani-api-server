@@ -121,7 +121,7 @@ fun Route.authRouting() {
                 },
             ) {
                 val requestId = call.parameters["requestId"] ?: throw BadRequestException("Missing parameter requestId")
-                call.respondRedirect(service.getBangumiOauthUrl(requestId), permanent = true)
+                call.respondRedirect(service.getBangumiOauthUrl(requestId), permanent = false)
             }
 
             get(
