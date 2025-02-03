@@ -180,7 +180,7 @@ class ServerConfigBuilder private constructor(
         rootDir = rootDir ?: File("./vol")
         danmakuGetRequestMaxCountAllowed = danmakuGetRequestMaxCountAllowed ?: 8000
         jwt.secret = jwt.secret ?: generateSecureRandomBytes()
-        jwt.expiration = jwt.expiration ?: 7.days.inWholeMilliseconds
+        jwt.expiration = jwt.expiration ?: 31.days.inWholeMilliseconds
         jwt.realm = jwt.realm ?: "Ani Danmaku"
         corsAllowHost = corsAllowHost ?: emptyList()
     }
