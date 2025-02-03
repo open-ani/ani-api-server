@@ -17,6 +17,7 @@ import me.him188.ani.danmaku.protocol.BangumiUserToken
 import me.him188.ani.danmaku.protocol.RefreshBangumiTokenRequest
 import me.him188.ani.danmaku.server.service.AuthService
 import me.him188.ani.danmaku.server.service.JwtTokenManager
+import me.him188.ani.danmaku.server.service.UserService
 import me.him188.ani.danmaku.server.util.exception.BadRequestException
 import me.him188.ani.danmaku.server.util.exception.InvalidClientVersionException
 import me.him188.ani.danmaku.server.util.exception.fromException
@@ -25,6 +26,7 @@ import java.util.Locale
 
 fun Route.authRouting() {
     val service: AuthService by inject()
+    val userService: UserService by inject()
     val jwtTokenManager: JwtTokenManager by inject()
 
     route(
@@ -64,6 +66,7 @@ fun Route.authRouting() {
                             example("example") {
                                 value = BangumiLoginResponse(
                                     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJIZWxsbyB0aGVyZSJ9.TNpICIfOzK-BvxxV72ApTiD4SlAwvzHbu_0O3FXq-s4",
+                                    ANI_USER_SAMPLE,
                                 )
                             }
                         }
@@ -94,7 +97,8 @@ fun Route.authRouting() {
                 clientPlatform = platform,
             )
             val userToken = jwtTokenManager.createToken(userId)
-            call.respond(BangumiLoginResponse(userToken))
+            val user = userService.getUser(userId)
+            call.respond(BangumiLoginResponse(userToken, user))
         }
         route("/oauth") {
             get(
@@ -249,3 +253,4 @@ fun Route.authRouting() {
         }
     }
 }
+

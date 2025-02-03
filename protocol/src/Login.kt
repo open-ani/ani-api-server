@@ -30,6 +30,7 @@ data class BangumiLoginRequest(
 @Serializable
 data class BangumiLoginResponse(
     val token: String,
+    val user: AniUser
 )
 
 @Serializable
